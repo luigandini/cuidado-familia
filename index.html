@@ -3,120 +3,163 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1e3a8a">
+<meta name="theme-color" content="#EEF2EE">
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Cuidado José">
+<meta name="apple-mobile-web-app-title" content="Dito's Health">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Cuidado José</title>
+<title>Dito's Health</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f4f1ea; --card:#ffffff; --ink:#14181f; --muted:#4b5563; --line:#d9d4c7;
-  --blue:#1e3a8a; --blue2:#dbe4ff; --green:#166534; --green2:#dcfce7;
-  --red:#b91c1c; --red2:#fee2e2; --amber:#92400e; --amber2:#fef3c7;
-  --r:18px;
+  --bg:#EEF2EE; --card:#FFFFFF; --ink:#15241D; --muted:#5E6B64; --faint:#8A968F; --line:#DDE4DE;
+  --lime:#D3EE62; --lime2:#EEF8C8; --forest:#1E5A43;
+  --green:#2E7A55; --green2:#E4F2E9; --red:#B8382A; --red2:#FBE9E5; --amber:#9A5B12; --amber2:#FBF0DC;
+  --blue:#1E5A43; --blue2:#E6EFEA;
+  --r-lg:22px; --r-md:16px; --r-sm:12px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{font-size:20px}
-html.f2{font-size:23px} html.f3{font-size:26px}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.35;padding-bottom:calc(5.2rem + env(safe-area-inset-bottom))}
+html{font-size:16px} html.f2{font-size:18.5px} html.f3{font-size:21px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.4;font-feature-settings:"tnum" 1;padding-bottom:calc(5.6rem + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
-h1,h2,h3{margin:0;line-height:1.2}
-.wrap{max-width:560px;margin:0 auto;padding:0 .8rem}
-header.top{background:var(--blue);color:#fff;padding:calc(.7rem + env(safe-area-inset-top)) 0 .8rem}
-header.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:.5rem}
-header.top h1{font-size:1.15rem;font-weight:800}
-header.top .sub{font-size:.8rem;opacity:.9}
-.who{background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:999px;padding:.35rem .8rem;font-size:.8rem;font-weight:700}
-.card{background:var(--card);border-radius:var(--r);padding:1rem;margin:.8rem 0;box-shadow:0 1px 0 var(--line),0 2px 10px rgba(0,0,0,.04)}
-.sec-title{font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:1.2rem .2rem .3rem}
-.big{font-size:1.6rem;font-weight:800}
-.muted{color:var(--muted)}
-.small{font-size:.8rem}
-.row{display:flex;align-items:center;gap:.7rem}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:3rem;padding:.5rem 1.1rem;border-radius:14px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800;cursor:pointer}
-.btn.primary{background:var(--blue);color:#fff}
-.btn.green{background:var(--green);border-color:var(--green);color:#fff}
-.btn.red{background:#fff;border-color:var(--red);color:var(--red)}
+h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.02em}
+svg.i{width:1.25em;height:1.25em;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.25em}
+.wrap{max-width:540px;margin:0 auto;padding:0 1rem}
+header.top{padding:calc(1rem + env(safe-area-inset-top)) 0 .4rem}
+header.top .wrap{display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem}
+header.top .brand{font-size:.8rem;font-weight:700;color:var(--forest);display:flex;align-items:center;gap:.35rem;margin-bottom:.35rem}
+header.top .brand i{width:.55rem;height:.55rem;border-radius:50%;background:var(--lime);box-shadow:0 0 0 2px var(--forest) inset}
+header.top h1{font-size:1.75rem;font-weight:800}
+header.top .sub{font-size:.875rem;color:var(--muted);margin-top:.2rem}
+.who{display:inline-flex;align-items:center;gap:.35rem;background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:.45rem .8rem;font-size:.8rem;font-weight:700;white-space:nowrap}
+.card{background:var(--card);border-radius:var(--r-lg);padding:1.1rem;margin:.75rem 0;border:1px solid var(--line)}
+.sec-title{font-size:.875rem;font-weight:700;color:var(--muted);margin:1.4rem .1rem .5rem;letter-spacing:0}
+.card .sec-title{margin:0 0 .6rem}
+.big{font-size:1.375rem;font-weight:800;letter-spacing:-.02em}
+.muted{color:var(--muted)} .small{font-size:.8125rem}
+.row{display:flex;align-items:center;gap:.6rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;min-height:3rem;padding:.6rem 1.15rem;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:700;font-size:.95rem;cursor:pointer;transition:transform .08s ease}
+.btn:active{transform:scale(.98)}
+.btn:focus-visible,.med:focus-visible,.chip:focus-visible,.list-btn:focus-visible,nav.tabs button:focus-visible{outline:3px solid var(--forest);outline-offset:2px}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.green{background:var(--lime);border-color:var(--lime);color:var(--ink)}
+.btn.red{background:var(--card);border-color:#E8C3BC;color:var(--red)}
 .btn.block{width:100%}
-.btn.sm{min-height:2.3rem;padding:.2rem .8rem;font-size:.85rem;border-width:2px}
-.next{border:3px solid var(--blue)}
-.next.late{border-color:var(--red);background:var(--red2)}
-.next.ok{border-color:var(--green);background:var(--green2)}
-.next .when{font-size:2.2rem;font-weight:900;line-height:1}
-.pill{display:inline-block;font-size:.75rem;font-weight:800;padding:.15rem .55rem;border-radius:999px;background:var(--blue2);color:var(--blue)}
+.btn.sm{min-height:2.25rem;padding:.25rem .8rem;font-size:.8125rem}
+.next{background:var(--lime);border-color:var(--lime);padding:1.25rem}
+.next .when{font-size:3.5rem;font-weight:800;line-height:.95;letter-spacing:-.05em;margin:.6rem 0 .5rem}
+.next .meds{font-size:1.05rem;font-weight:700;line-height:1.35}
+.next .btn.green{background:var(--ink);border-color:var(--ink);color:#fff}
+.next.late{background:var(--red2);border-color:#F0C6BE}
+.next.late .when{color:var(--red)}
+.next.ok{background:var(--green2);border-color:#CBE5D5}
+.pill{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;background:rgba(21,36,29,.08);color:var(--ink)}
 .pill.red{background:var(--red);color:#fff}.pill.green{background:var(--green);color:#fff}.pill.amber{background:var(--amber2);color:var(--amber)}
-.slot{padding:.2rem 0}
-.slot-h{display:flex;justify-content:space-between;align-items:center;margin:.4rem 0 .2rem}
-.slot-h .t{font-size:1.25rem;font-weight:900}
-.med{display:flex;align-items:center;gap:.8rem;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:14px;padding:.65rem .75rem;margin:.4rem 0;cursor:pointer}
-.med .box{flex:0 0 2.4rem;height:2.4rem;border-radius:10px;border:3px solid #6b7280;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:900;color:#fff}
-.med.done{border-color:var(--green);background:var(--green2)}
-.med.done .box{background:var(--green);border-color:var(--green)}
-.med.late:not(.done){border-color:var(--red)}
-.med .nm{font-weight:800;font-size:1.05rem}
-.med .dt{font-size:.8rem;color:var(--muted)}
-.med.rotina .nm{font-weight:600}
-.med .ob{font-size:.8rem;color:var(--amber);font-weight:700}
+.slot{margin-top:1.1rem}
+.slot-h{display:flex;align-items:center;gap:.5rem;margin:0 .1rem .45rem}
+.slot-h .t{font-size:1.125rem;font-weight:800;letter-spacing:-.01em}
+.slot-h .state{margin-left:auto;font-size:.75rem;font-weight:700;color:var(--muted)}
+.slot-list{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.med{display:flex;align-items:center;gap:.8rem;width:100%;text-align:left;background:transparent;border:0;border-top:1px solid var(--line);padding:.85rem 1rem;cursor:pointer;min-height:3.6rem}
+.med:first-child{border-top:0}
+.med .box{flex:0 0 1.75rem;height:1.75rem;border-radius:9px;border:1.75px solid #A9B4AD;display:flex;align-items:center;justify-content:center;color:var(--ink);background:#fff}
+.med .box svg.i{width:1.1rem;height:1.1rem;stroke-width:2.5}
+.med.done .box{background:var(--lime);border-color:var(--lime)}
+.med.done .nm{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(0,0,0,.25)}
+.med.late:not(.done):not(.rotina) .box{border-color:var(--red)}
+.med .nm{font-weight:700;font-size:1rem}
+.med .dt{font-size:.8125rem;color:var(--muted)}
+.med .by{font-size:.75rem;color:var(--green);font-weight:600}
+.med.rotina .nm{font-weight:500;color:var(--muted)}
+.med.rotina .box{border-style:dashed}
+.med .ob{font-size:.8125rem;color:var(--amber);font-weight:600}
 .daynav{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
-.daynav button{min-width:3rem}
-.ev{display:flex;gap:.8rem;align-items:flex-start;padding:.7rem 0;border-top:1px solid var(--line)}
-.ev:first-child{border-top:0}
-.ev .chk{flex:0 0 2.2rem;height:2.2rem;border-radius:10px;border:3px solid #6b7280;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1.3rem;cursor:pointer}
-.ev.done .chk{background:var(--green);border-color:var(--green)}
+.daynav .btn{width:2.75rem;padding:0}
+.progress{height:.5rem;background:var(--bg);border-radius:999px;overflow:hidden;margin-top:.55rem}
+.progress div{height:100%;background:var(--forest);border-radius:999px}
+.ev{display:flex;gap:.8rem;align-items:flex-start;padding:.85rem 0;border-top:1px solid var(--line)}
+.ev:first-of-type{border-top:0}
+.ev .chk{flex:0 0 1.75rem;height:1.75rem;margin-top:.1rem;border-radius:9px;border:1.75px solid #A9B4AD;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.ev .chk svg.i{width:1.1rem;height:1.1rem;stroke-width:2.5}
+.ev.done .chk{background:var(--lime);border-color:var(--lime)}
 .ev.done .tt{text-decoration:line-through;color:var(--muted)}
-.ev .tt{font-weight:800}
+.ev .tt{font-weight:700}
+.ev .meta{display:flex;align-items:center;gap:.35rem;font-size:.8125rem;color:var(--muted);margin-top:.15rem}
 .ev .body{flex:1;cursor:pointer}
-.datehead{font-weight:900;font-size:1.05rem;margin-top:.6rem}
-.datehead .rel{font-weight:700;color:var(--blue);font-size:.85rem;margin-left:.3rem}
-nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:2px solid var(--line);display:flex;justify-content:space-around;padding:.3rem .2rem calc(.3rem + env(safe-area-inset-bottom));z-index:20}
-nav.tabs button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:.05rem;padding:.3rem 0;font-size:.72rem;font-weight:800;color:var(--muted);border-radius:12px}
-nav.tabs button .ic{font-size:1.5rem;line-height:1}
-nav.tabs button.on{color:var(--blue);background:var(--blue2)}
-.alert{border-radius:14px;padding:.8rem;margin:.6rem 0;font-weight:700}
-.alert.red{background:var(--red2);color:var(--red);border:2px solid var(--red)}
-.alert.amber{background:var(--amber2);color:var(--amber);border:2px solid #d97706}
-.alert.blue{background:var(--blue2);color:var(--blue);border:2px solid var(--blue)}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
-.stat{background:#fff;border-radius:var(--r);padding:.8rem;box-shadow:0 1px 0 var(--line)}
-.stat .v{font-size:1.7rem;font-weight:900;line-height:1.1}
-.stat .l{font-size:.75rem;color:var(--muted);font-weight:700}
-.bars{display:flex;align-items:flex-end;gap:.35rem;height:6rem;margin-top:.5rem}
-.bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:.2rem}
-.bars i{display:block;width:100%;border-radius:6px 6px 2px 2px;background:var(--green)}
-.bars span{font-size:.65rem;color:var(--muted);font-weight:700}
+.ev .time{font-weight:800;font-size:.95rem;min-width:3rem;padding-top:.15rem}
+.datehead{display:flex;align-items:baseline;justify-content:space-between;font-weight:800;font-size:1rem;margin-top:1rem;padding-bottom:.2rem}
+.datehead:first-child{margin-top:0}
+.datehead .rel{font-weight:700;color:var(--forest);font-size:.75rem;background:var(--blue2);padding:.2rem .55rem;border-radius:999px}
+.datehead .rel.hot{background:var(--lime);color:var(--ink)}
+nav.tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(.6rem + env(safe-area-inset-bottom));width:min(520px,calc(100% - 1.2rem));background:var(--ink);border-radius:999px;display:flex;justify-content:space-between;padding:.35rem;z-index:20;box-shadow:0 10px 30px rgba(21,36,29,.25)}
+nav.tabs button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.45rem 0;font-size:.6875rem;font-weight:700;color:#AEBBB3;border-radius:999px;cursor:pointer}
+nav.tabs button svg.i{width:1.35rem;height:1.35rem}
+nav.tabs button.on{color:var(--ink);background:var(--lime)}
+.alert{display:flex;gap:.6rem;align-items:flex-start;border-radius:var(--r-md);padding:.8rem .9rem;margin:.6rem 0;font-weight:600;font-size:.9rem;line-height:1.4}
+.alert svg.i{margin-top:.05rem}
+.alert.red{background:var(--red2);color:var(--red)}
+.alert.amber{background:var(--amber2);color:var(--amber)}
+.alert.blue{background:var(--card);color:var(--ink);border:1px solid var(--line);cursor:pointer}
+.alert.blue svg.i{color:var(--forest)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.75rem}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:.9rem 1rem;cursor:pointer}
+.stat .v{font-size:1.75rem;font-weight:800;line-height:1.05;letter-spacing:-.03em}
+.stat .l{font-size:.8125rem;color:var(--muted);font-weight:600;margin-top:.3rem}
+.stat.hero{background:var(--lime);border-color:var(--lime)}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem;margin-top:.4rem}
+.heat div{display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.heat i{display:block;width:100%;aspect-ratio:1;border-radius:10px;background:var(--bg);border:1.5px solid transparent}
+.heat i.full{background:var(--lime)} .heat i.part{background:var(--lime2);border-color:var(--lime)} .heat i.low{background:#fff;border-color:var(--red)}
+.heat i.today{outline:2px solid var(--ink);outline-offset:2px}
+.heat span{font-size:.6875rem;color:var(--muted);font-weight:700}
+.heat b{font-size:.6875rem;font-weight:700}
 svg.chart{width:100%;height:auto;display:block}
-.entry{border-top:1px solid var(--line);padding:.7rem 0}
-.entry:first-child{border-top:0}
+.entry{border-top:1px solid var(--line);padding:.9rem 0}
+.entry:first-child{border-top:0;padding-top:0}
+.entry .facts{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem}
+.fact{font-size:.75rem;font-weight:600;background:var(--bg);border-radius:999px;padding:.2rem .55rem;color:var(--ink)}
+.fact.hl{background:var(--lime2)}
 .chips{display:flex;flex-wrap:wrap;gap:.4rem}
-.chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:.45rem .85rem;font-weight:700;cursor:pointer;min-height:2.6rem}
-.chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:.5rem .9rem;font-weight:600;font-size:.9rem;cursor:pointer;min-height:2.6rem}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
 .pain{display:grid;grid-template-columns:repeat(6,1fr);gap:.35rem}
-.pain button{min-height:2.8rem;border-radius:10px;border:2px solid var(--line);background:#fff;font-weight:900;font-size:1.05rem}
-.pain button.on{outline:4px solid var(--ink);outline-offset:-1px}
-label.f{display:block;font-weight:800;margin:.9rem 0 .35rem}
-input.in,select.in,textarea.in{width:100%;border:2px solid #9ca3af;border-radius:12px;padding:.65rem .75rem;background:#fff;min-height:3rem}
-textarea.in{min-height:5.5rem}
-input.in:focus,select.in:focus,textarea.in:focus{outline:3px solid var(--blue);border-color:var(--blue)}
+.pain button{min-height:2.75rem;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--card);font-weight:800;font-size:1rem;position:relative;overflow:hidden;cursor:pointer}
+.pain button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--pc)}
+.pain button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+label.f{display:block;font-weight:700;font-size:.875rem;margin:1.1rem 0 .4rem}
+input.in,select.in,textarea.in{width:100%;border:1px solid #C9D2CB;border-radius:var(--r-sm);padding:.7rem .85rem;background:#fff;min-height:3rem;font-size:1rem}
+textarea.in{min-height:5.5rem;resize:vertical}
+input.in:focus,select.in:focus,textarea.in:focus{outline:3px solid var(--lime);border-color:var(--forest)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
-.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--bg);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:1rem 1rem calc(1.2rem + env(safe-area-inset-bottom))}
-.sheet h2{font-size:1.25rem;margin-bottom:.3rem}
-.sheet .acts{display:flex;gap:.6rem;margin-top:1.2rem;position:sticky;bottom:0;background:var(--bg);padding-top:.6rem}
+.sheet-bg{position:fixed;inset:0;background:rgba(21,36,29,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:540px;max-height:92vh;overflow:auto;border-radius:28px 28px 0 0;padding:.6rem 1.1rem calc(1.2rem + env(safe-area-inset-bottom));animation:up .22s ease-out}
+.sheet::before{content:"";display:block;width:2.5rem;height:4px;border-radius:4px;background:#C9D2CB;margin:0 auto .9rem}
+@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}.btn{transition:none}}
+.sheet h2{font-size:1.375rem;font-weight:800;margin-bottom:.35rem;display:flex;align-items:center;gap:.5rem}
+.sheet .acts{display:flex;gap:.6rem;margin-top:1.3rem;position:sticky;bottom:0;background:var(--bg);padding-top:.7rem}
 .sheet .acts .btn{flex:1}
 .login{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:1.5rem}
-.pinbox{display:flex;justify-content:center;gap:.6rem;margin:1rem 0}
-.pinbox i{width:1.1rem;height:1.1rem;border-radius:50%;border:3px solid var(--blue)}
-.pinbox i.f{background:var(--blue)}
-.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;max-width:20rem;margin:0 auto}
-.keypad button{min-height:4rem;font-size:1.6rem;font-weight:800;border-radius:16px;border:2px solid var(--line);background:#fff}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(6rem + env(safe-area-inset-bottom));background:var(--ink);color:#fff;padding:.7rem 1.1rem;border-radius:14px;font-weight:700;z-index:80;max-width:90vw;text-align:center}
-.demo{background:var(--amber2);color:var(--amber);font-weight:800;text-align:center;font-size:.8rem;padding:.35rem}
-.list-btn{display:flex;justify-content:space-between;align-items:center;width:100%;background:#fff;border:0;border-top:1px solid var(--line);padding:.95rem .2rem;font-weight:800;text-align:left;cursor:pointer}
-.list-btn:first-child{border-top:0}
-.sinais li{margin:.35rem 0}
+.logo{width:3.5rem;height:3.5rem;border-radius:18px;background:var(--lime);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--ink)}
+.logo svg.i{width:1.9rem;height:1.9rem;stroke-width:2}
+.pinbox{display:flex;justify-content:center;gap:.6rem;margin:1.4rem 0}
+.pinbox i{width:.85rem;height:.85rem;border-radius:50%;background:#D3DAD5}
+.pinbox i.f{background:var(--ink)}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;max-width:18rem;margin:0 auto}
+.keypad button{min-height:3.75rem;font-size:1.5rem;font-weight:700;border-radius:20px;border:1px solid var(--line);background:var(--card);cursor:pointer}
+.keypad button.k-ok{background:var(--ink);color:#fff;border-color:var(--ink);font-size:.95rem}
+.keypad button.k-del{font-size:.85rem;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(6.2rem + env(safe-area-inset-bottom));background:var(--ink);color:#fff;padding:.7rem 1.1rem;border-radius:999px;font-weight:600;font-size:.9rem;z-index:80;max-width:90vw;text-align:center}
+.demo{background:var(--amber2);color:var(--amber);font-weight:700;text-align:center;font-size:.75rem;padding:.4rem}
+.list-btn{display:flex;align-items:center;gap:.8rem;width:100%;background:transparent;border:0;border-top:1px solid var(--line);padding:.95rem .1rem;font-weight:600;font-size:.95rem;text-align:left;cursor:pointer}
+.list-btn:first-child{border-top:0;padding-top:.2rem}
+.list-btn .ico{width:2.25rem;height:2.25rem;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.list-btn .grow{flex:1}
+.list-btn .chev{color:var(--faint)}
 .hide{display:none!important}
 </style>
 </head>
@@ -156,6 +199,39 @@ const LS = {
   set:(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 };
 function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+
+
+/* ================= ÍCONES (traço, monocromáticos) ================= */
+const ICONS = {
+  pill:'<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/>',
+  calendar:'<rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/>',
+  diary:'<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M8 12h8M8 16h5"/>',
+  pulse:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  grid:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  left:'<path d="m15 18-6-6 6-6"/>', right:'<path d="m9 18 6-6-6-6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  food:'<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+  chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  key:'<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/>',
+  refresh:'<path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  pen:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  steth:'<path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 12 0V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 12 0v-4"/><circle cx="20" cy="10" r="2"/>',
+  flask:'<path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7 15h10"/>',
+  heart:'<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/>',
+  logo:'<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/><path d="M3.5 12H8l1.5-3 3 6 1.5-3h6"/>',
+  syringe:'<path d="m18 2 4 4M17 7l3-3M19 9 8.7 19.3a2.4 2.4 0 0 1-3.4 0l-.6-.6a2.4 2.4 0 0 1 0-3.4L15 5M9 11l4 4M5 19l-3 3M14 4l6 6"/>',
+  type:'<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
+  temp:'<path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>',
+  dot:'<circle cx="12" cy="12" r="3"/>'
+};
+const ic = (n, cls="") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||""}</svg>`;
 
 /* ================= BACKEND ================= */
 const api = DEMO ? (()=> {
@@ -240,18 +316,18 @@ function render(){
   if(!S.pin) return renderLogin(app);
   if(!S.me) return renderWho(app);
   if(!S.loaded){ app.innerHTML = `<div class="login"><p class="big" style="text-align:center">Carregando…</p></div>`; return; }
-  const titles = {hoje:"Remédios de hoje",agenda:"Consultas e exames",diario:"Diário do paciente",painel:"Visão geral",mais:"Mais opções"};
+  const titles = {hoje:"Remédios de hoje",agenda:"Consultas e exames",diario:"Diário",painel:"Visão geral",mais:"Mais opções"};
   app.innerHTML = `
     ${DEMO?'<div class="demo">MODO DEMONSTRAÇÃO · dados só neste aparelho · PIN 1234</div>':""}
     ${!S.online?'<div class="demo">SEM INTERNET · mostrando a última cópia</div>':""}
     <header class="top"><div class="wrap">
-      <div><h1>${esc(titles[S.tab])}</h1><div class="sub">${esc(CONFIG.paciente)} · ${fmtDay(today())}</div></div>
-      <button class="who" onclick="askWho()">👤 ${esc(S.me)}</button>
+      <div><div class="brand"><i></i>Dito's Health</div><h1>${esc(titles[S.tab])}</h1><div class="sub">${esc(CONFIG.paciente)}, ${fmtDay(today())}</div></div>
+      <button class="who" onclick="askWho()" aria-label="Trocar quem está usando">${ic("user")} ${esc(S.me)}</button>
     </div></header>
     <main class="wrap" id="main"></main>
     <nav class="tabs">
-      ${[["hoje","💊","Hoje"],["agenda","📅","Agenda"],["diario","📝","Diário"],["painel","📊","Painel"],["mais","☰","Mais"]]
-        .map(([k,ic,l])=>`<button class="${S.tab===k?"on":""}" onclick="go('${k}')"><span class="ic">${ic}</span>${l}</button>`).join("")}
+      ${[["hoje","pill","Hoje"],["agenda","calendar","Agenda"],["diario","diary","Diário"],["painel","pulse","Painel"],["mais","grid","Mais"]]
+        .map(([k,n,l])=>`<button class="${S.tab===k?"on":""}" onclick="go('${k}')" aria-current="${S.tab===k?"page":"false"}">${ic(n)}${l}</button>`).join("")}
     </nav>`;
   ({hoje:renderHoje,agenda:renderAgenda,diario:renderDiario,painel:renderPainel,mais:renderMais})[S.tab]($("#main"));
 }
@@ -261,16 +337,16 @@ function go(t){ S.tab=t; if(t==="hoje") S.day=today(); render(); window.scrollTo
 let pinTyped = "";
 function renderLogin(app){
   app.innerHTML = `<div class="login wrap">
-    <div style="text-align:center;font-size:3rem">💙</div>
-    <h1 style="text-align:center;font-size:1.5rem">Cuidado ${esc(CONFIG.paciente.split(" ")[0])}</h1>
+    <div class="logo">${ic("logo")}</div>
+    <h1 style="text-align:center;font-size:1.75rem;font-weight:800">Dito's Health</h1>
     <p class="muted" style="text-align:center">Digite o PIN da família</p>
     ${DEMO?'<p class="small" style="text-align:center"><b>Demonstração: PIN 1234</b></p>':""}
     <div class="pinbox">${[0,1,2,3,4,5].map(i=>`<i class="${i<pinTyped.length?"f":""}"></i>`).join("")}</div>
     <div class="keypad">
       ${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="pinKey('${n}')">${n}</button>`).join("")}
-      <button onclick="pinKey('C')" style="font-size:1rem">Apagar</button>
+      <button class="k-del" onclick="pinKey('C')">Apagar</button>
       <button onclick="pinKey('0')">0</button>
-      <button onclick="pinKey('OK')" style="background:var(--blue);color:#fff;font-size:1.1rem">Entrar</button>
+      <button class="k-ok" onclick="pinKey('OK')">Entrar</button>
     </div></div>`;
 }
 async function pinKey(k){
@@ -298,9 +374,9 @@ function knownPeople(){
 function renderWho(app){
   const ppl = knownPeople();
   app.innerHTML = `<div class="login wrap">
-    <h1 style="font-size:1.5rem">Quem está usando?</h1>
+    <h1 style="font-size:1.75rem;font-weight:800">Quem está usando?</h1>
     <p class="muted">Assim a família sabe quem deu cada remédio.</p>
-    <div class="chips" style="margin:1rem 0">${ppl.map(p=>`<button class="chip" style="font-size:1.1rem" onclick="setMe(decodeURIComponent('${encodeURIComponent(p)}'))">${esc(p)}</button>`).join("")}</div>
+    <div class="chips" style="margin:1rem 0">${ppl.map(p=>`<button class="chip" onclick="setMe(decodeURIComponent('${encodeURIComponent(p)}'))">${esc(p)}</button>`).join("")}</div>
     <label class="f">Ou escreva seu nome</label>
     <input class="in" id="whoName" placeholder="Ex.: Maria" autocomplete="given-name">
     <button class="btn primary block" style="margin-top:1rem" onclick="setMe($('#whoName').value)">Continuar</button>
@@ -338,46 +414,48 @@ function renderHoje(main){
   if(isToday){
     const ns = nextSlot();
     if(ns){
-      const when = ns.diff>0 ? `em ${ns.diff>=60?Math.floor(ns.diff/60)+"h"+pad(ns.diff%60):ns.diff+" min"}` : (ns.late?`ATRASADO ${-ns.diff} min`:"AGORA");
+      const when = ns.diff>0 ? `em ${ns.diff>=60?Math.floor(ns.diff/60)+"h"+pad(ns.diff%60):ns.diff+" min"}` : (ns.late?`Atrasado ${-ns.diff>=60?Math.floor(-ns.diff/60)+"h"+pad(-ns.diff%60):-ns.diff+" min"}`:"Agora");
       html += `<div class="card next ${ns.late?"late":""}">
-        <div class="row" style="justify-content:space-between"><span class="pill ${ns.late?"red":""}">PRÓXIMO REMÉDIO</span><b>${when}</b></div>
-        <div class="when" style="margin:.5rem 0">${ns.time}</div>
-        <div style="font-size:1.2rem;font-weight:800">${ns.pend.map(m=>esc(m.data.name)).join(" · ")}</div>
-        <button class="btn green block" style="margin-top:.8rem;min-height:3.6rem;font-size:1.15rem" onclick="giveSlot('${ns.time}')">✓ Dei esses remédios</button>
+        <div class="row" style="justify-content:space-between"><span class="pill ${ns.late?"red":""}">${ic("clock")} Próximo remédio</span><b class="small">${when}</b></div>
+        <div class="when">${ns.time}</div>
+        <div class="meds">${ns.pend.map(m=>esc(m.data.name)).join(", ")}</div>
+        <button class="btn green block" style="margin-top:1rem;min-height:3.4rem" onclick="giveSlot('${ns.time}')">${ic("check")} Dei esses remédios</button>
       </div>`;
     } else if(all.length){
-      html += `<div class="card next ok"><span class="pill green">TUDO EM DIA</span><div class="big" style="margin-top:.4rem">Todos os remédios de hoje foram dados ✓</div></div>`;
+      html += `<div class="card next ok"><span class="pill green">${ic("check")} Tudo em dia</span><div class="big" style="margin-top:.6rem">Todos os remédios de hoje foram dados</div></div>`;
     }
     const evs = byKind("event").filter(e=>e.data.date===d && !e.data.done).sort((a,b)=>(a.data.time||"").localeCompare(b.data.time||""));
-    evs.forEach(e=> html += `<div class="alert blue" onclick="go('agenda')">📅 Hoje ${e.data.time?"às "+esc(e.data.time):""}: ${esc(e.data.title)}${e.data.place?" · "+esc(e.data.place):""}</div>`);
+    evs.forEach(e=> html += `<div class="alert blue" onclick="go('agenda')">${ic("calendar")}<span>Hoje ${e.data.time?"às "+esc(e.data.time):""}: <b>${esc(e.data.title)}</b>${e.data.place?", "+esc(e.data.place):""}</span></div>`);
     const tm = byKind("event").filter(e=>e.data.date===addDays(d,1) && !e.data.done);
-    tm.forEach(e=> html += `<div class="alert amber" onclick="go('agenda')">📅 Amanhã ${e.data.time?"às "+esc(e.data.time):""}: ${esc(e.data.title)}</div>`);
+    tm.forEach(e=> html += `<div class="alert blue" onclick="go('agenda')">${ic("calendar")}<span>Amanhã ${e.data.time?"às "+esc(e.data.time):""}: <b>${esc(e.data.title)}</b></span></div>`);
   }
   html += `<div class="card"><div class="daynav">
-      <button class="btn sm" onclick="S.day=addDays(S.day,-1);render()">◀</button>
+      <button class="btn sm" aria-label="Dia anterior" onclick="S.day=addDays(S.day,-1);render()">${ic("left")}</button>
       <div style="text-align:center"><b>${isToday?"Hoje":relDay(d)}</b><div class="small muted">${fmtDay(d)}</div></div>
-      <button class="btn sm" onclick="S.day=addDays(S.day,1);render()" ${isToday?"disabled style='opacity:.3'":""}>▶</button>
+      <button class="btn sm" aria-label="Próximo dia" onclick="S.day=addDays(S.day,1);render()" ${isToday?"disabled style='opacity:.3'":""}>${ic("right")}</button>
     </div>
-    <div style="margin-top:.6rem;font-weight:800">${done} de ${all.length} remédios dados</div>
-    <div style="height:.7rem;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:.3rem"><div style="height:100%;width:${all.length?Math.round(done/all.length*100):0}%;background:var(--green)"></div></div>
+    <div class="row" style="justify-content:space-between;margin-top:.8rem"><b>${done} de ${all.length} remédios dados</b><span class="small muted">${all.length?Math.round(done/all.length*100):0}%</span></div>
+    <div class="progress"><div style="width:${all.length?Math.round(done/all.length*100):0}%"></div></div>
   </div>`;
   if(!slots.length) html += `<div class="card">Nenhum remédio cadastrado. Vá em <b>Mais → Lista de remédios</b>.</div>`;
   slots.forEach(s=>{
     const late = isToday && hmToMin(s.time) < now - 15 || d < today();
-    html += `<div class="slot"><div class="slot-h"><span class="t">🕐 ${s.time}</span></div>`;
+    const sp = s.list.filter(m=>m.data.type!=="rotina"), sd = sp.filter(m=>doseFor(d,m.id)).length;
+    html += `<div class="slot"><div class="slot-h"><span class="t">${s.time}</span><span class="state">${sp.length? (sd===sp.length?"Concluído":`${sd}/${sp.length}`):""}</span></div><div class="slot-list">`;
     s.list.forEach(m=>{
       const dose = doseFor(d,m.id);
       html += `<button class="med ${dose?"done":""} ${late?"late":""} ${m.data.type==="rotina"?"rotina":""}" onclick="toggleDose('${m.id}')">
-        <span class="box">${dose?"✓":""}</span>
-        <span style="flex:1"><span class="nm">${m.data.type==="rotina"?"🍽️ ":""}${esc(m.data.name)}</span>
+        <span class="box">${dose?ic("check"):(m.data.type==="rotina"?"":"")}</span>
+        <span style="flex:1"><span class="nm">${esc(m.data.name)}</span>
           ${m.data.detail?`<br><span class="dt">${esc(m.data.detail)}</span>`:""}
-          ${dose?`<br><span class="dt">✓ ${esc(dose.data.by||"")} às ${fmtTime(dose.data.at)}</span>`:""}
-          ${dose&&dose.data.obs?`<br><span class="ob">📌 ${esc(dose.data.obs)}</span>`:""}
+          ${dose?`<br><span class="by">Dado por ${esc(dose.data.by||"")} às ${fmtTime(dose.data.at)}</span>`:""}
+          ${dose&&dose.data.obs?`<br><span class="ob">${esc(dose.data.obs)}</span>`:""}
         </span>
-        ${dose?`<span class="btn sm" onclick="event.stopPropagation();doseObs('${dose.id}')">Obs</span>`:""}
+        ${m.data.type==="rotina"&&!dose?`<span class="muted">${ic("food")}</span>`:""}
+        ${dose?`<span class="btn sm" onclick="event.stopPropagation();doseObs('${dose.id}')" aria-label="Observação">${ic("pen")}</span>`:""}
       </button>`;
     });
-    html += `</div>`;
+    html += `</div></div>`;
   });
   html += `<p class="small muted" style="text-align:center;margin:1.2rem 0">Toque no remédio para marcar. Toque de novo para desmarcar.</p>`;
   main.innerHTML = html;
@@ -395,7 +473,7 @@ async function giveSlot(time){
   const t = today();
   const list = slotsFor(t).find(s=>s.time===time).list.filter(m=>m.data.type!=="rotina" && !doseFor(t,m.id));
   for(const m of list) await save("dose", {date:t, med:m.id, by:S.me, at:new Date().toISOString(), obs:""});
-  toast("Anotado ✓");
+  toast("Anotado");
 }
 function doseObs(id){
   const dose = S.items.find(i=>i.id===id);
@@ -405,13 +483,14 @@ function doseObs(id){
 }
 
 /* ---------- AGENDA ---------- */
-const TIPOS = {consulta:"🩺 Consulta",exame:"🔬 Exame",terapia:"💬 Terapia",tratamento:"💉 Tratamento",outro:"📌 Outro"};
+const TIPOS = {consulta:"Consulta",exame:"Exame",terapia:"Terapia",tratamento:"Tratamento",outro:"Outro"};
+const TIPO_IC = {consulta:"steth",exame:"flask",terapia:"heart",tratamento:"syringe",outro:"dot"};
 function renderAgenda(main){
   const t = today();
   let evs = byKind("event").sort((a,b)=> (a.data.date+(a.data.time||"99")).localeCompare(b.data.date+(b.data.time||"99")));
   const past = evs.filter(e=>e.data.date<t);
   evs = evs.filter(e=>e.data.date>=t);
-  let html = `<button class="btn primary block" style="margin-top:.9rem" onclick="editEvent()">＋ Novo compromisso</button>`;
+  let html = `<button class="btn primary block" style="margin-top:.9rem" onclick="editEvent()">${ic("plus")} Novo compromisso</button>`;
   const groups = {};
   (S.showPast?past.concat(evs):evs).forEach(e=>{ (groups[e.data.date]=groups[e.data.date]||[]).push(e); });
   const dates = Object.keys(groups);
@@ -419,14 +498,15 @@ function renderAgenda(main){
   html += `<div class="card">`;
   dates.forEach(dt=>{
     const r = relDay(dt);
-    html += `<div class="datehead">${fmtDay(dt)} <span class="rel">${r}</span></div>`;
+    html += `<div class="datehead"><span>${fmtDay(dt)}</span><span class="rel ${daysBetween(t,dt)<=1&&daysBetween(t,dt)>=0?"hot":""}">${r==="HOJE"?"Hoje":r==="AMANHÃ"?"Amanhã":r}</span></div>`;
     groups[dt].forEach(e=>{
       html += `<div class="ev ${e.data.done?"done":""}">
-        <button class="chk" onclick="toggleEvent('${e.id}')" aria-label="concluído">${e.data.done?"✓":""}</button>
+        <button class="chk" onclick="toggleEvent('${e.id}')" aria-label="Marcar como feito">${e.data.done?ic("check"):""}</button>
+        <div class="time">${e.data.time?esc(e.data.time):"—"}</div>
         <div class="body" onclick="editEvent('${e.id}')">
-          <div class="tt">${e.data.time?esc(e.data.time)+" · ":""}${esc(e.data.title)}</div>
-          <div class="small muted">${TIPOS[e.data.type]||""}${e.data.place?" · "+esc(e.data.place):""}</div>
-          ${e.data.obs?`<div class="small" style="color:var(--amber);font-weight:700">📌 ${esc(e.data.obs)}</div>`:""}
+          <div class="tt">${esc(e.data.title)}</div>
+          <div class="meta">${ic(TIPO_IC[e.data.type]||"dot")} ${TIPOS[e.data.type]||""}${e.data.place?` <span style="opacity:.5">/</span> ${esc(e.data.place)}`:""}</div>
+          ${e.data.obs?`<div class="small" style="color:var(--amber);font-weight:600;margin-top:.2rem">${esc(e.data.obs)}</div>`:""}
         </div></div>`;
     });
   });
@@ -456,41 +536,42 @@ function editEvent(id){
 
 /* ---------- DIÁRIO ---------- */
 const PAIN_COLORS = ["#16a34a","#4ade80","#a3e635","#facc15","#fbbf24","#f59e0b","#fb923c","#f97316","#ef4444","#dc2626","#991b1b"];
-const MOODS = ["😢","🙁","😐","🙂","😄"];
+const MOODS = ["Muito mal","Mal","Regular","Bem","Muito bem"];
 function diaryAlerts(d){
   const a = [];
-  if(parseFloat(String(d.temp).replace(",","."))>=37.8) a.push(["red","🌡️ Febre em quem faz quimioterapia: ligar para a equipe de oncologia ou ir ao pronto-socorro hoje."]);
-  if(d.swallow==="Entalou") a.push(["red","⚠️ Alimento entalado: se não consegue engolir nem a saliva, ir ao pronto-socorro."]);
-  if((d.painSite||[]).includes("Costas") && Number(d.pain)>=7) a.push(["red","⚠️ Dor forte nas costas: se houver fraqueza ou dormência nas pernas ou dificuldade para urinar, pronto-socorro no mesmo dia."]);
+  if(parseFloat(String(d.temp).replace(",","."))>=37.8) a.push(["red","Febre em quem faz quimioterapia: ligar para a equipe de oncologia ou ir ao pronto-socorro hoje."]);
+  if(d.swallow==="Entalou") a.push(["red","Alimento entalado: se não consegue engolir nem a saliva, ir ao pronto-socorro."]);
+  if((d.painSite||[]).includes("Costas") && Number(d.pain)>=7) a.push(["red","Dor forte nas costas: se houver fraqueza ou dormência nas pernas ou dificuldade para urinar, pronto-socorro no mesmo dia."]);
   if(d.bpS && Number(d.bpS)<90) a.push(["amber","Pressão baixa (máxima abaixo de 90). Avisar a equipe médica."]);
   if(d.nausea==="Vomitou") a.push(["amber","Vômito: avisar a equipe se repetir ou se não conseguir tomar os remédios."]);
   return a;
 }
 function renderDiario(main){
   const list = byKind("diary").sort((a,b)=>(b.data.date+b.data.time).localeCompare(a.data.date+a.data.time));
-  let html = `<button class="btn primary block" style="margin-top:.9rem;min-height:3.6rem;font-size:1.1rem" onclick="editDiary()">＋ Registrar como ele está agora</button>`;
-  if(list.some(e=>e.data.exemplo)) html += `<div class="alert amber">Há registros de EXEMPLO. <button class="btn sm" onclick="clearExamples()">Apagar exemplos</button></div>`;
+  let html = `<button class="btn primary block" style="margin-top:.9rem;min-height:3.4rem" onclick="editDiary()">${ic("plus")} Registrar como ele está agora</button>`;
+  if(list.some(e=>e.data.exemplo)) html += `<div class="alert amber" style="align-items:center">${ic("alert")}<span style="flex:1">Há registros de exemplo.</span><button class="btn sm" onclick="clearExamples()">Apagar</button></div>`;
   html += `<div class="card">`;
   if(!list.length) html += `<p class="muted">Nenhum registro ainda.</p>`;
   list.forEach(e=>{
     const d = e.data;
     const bits = [];
-    if(d.pain!==""&&d.pain!=null) bits.push(`<b>Dor ${d.pain}/10</b>${d.painSite&&d.painSite.length?" ("+esc(d.painSite.join(", "))+")":""}`);
-    if(d.food) bits.push(`Comeu: ${esc(d.food)}`);
-    if(d.swallow) bits.push(`Engolir: ${esc(d.swallow)}`);
-    if(d.temp) bits.push(`Temp ${esc(d.temp)}°C`);
-    if(d.bpS) bits.push(`PA ${esc(d.bpS)}/${esc(d.bpD)}`);
-    if(d.weight) bits.push(`Peso ${esc(d.weight)} kg`);
-    if(d.bowel) bits.push(`Evacuou: ${esc(d.bowel)}`);
-    if(d.nausea) bits.push(`Náusea: ${esc(d.nausea)}`);
-    if(d.sleep) bits.push(`Sono: ${esc(d.sleep)}`);
-    if(d.mood) bits.push(`Humor ${MOODS[d.mood-1]}`);
+    const F=(t,hl)=>bits.push(`<span class="fact ${hl?"hl":""}">${t}</span>`);
+    if(d.pain!==""&&d.pain!=null) F(`Dor ${d.pain}/10${d.painSite&&d.painSite.length?", "+esc(d.painSite.join(", ").toLowerCase()):""}`, true);
+    if(d.food) F(`Comeu ${esc(d.food).toLowerCase()}`);
+    if(d.swallow) F(`Engolir: ${esc(d.swallow).toLowerCase()}`);
+    if(d.temp) F(`${esc(String(d.temp).replace(".",","))} °C`);
+    if(d.bpS) F(`PA ${esc(d.bpS)}/${esc(d.bpD)}`);
+    if(d.weight) F(`${esc(String(d.weight).replace(".",","))} kg`);
+    if(d.bowel) F(`Evacuou: ${esc(d.bowel).toLowerCase()}`);
+    if(d.nausea) F(`Náusea: ${esc(d.nausea).toLowerCase()}`);
+    if(d.sleep) F(`Sono ${esc(d.sleep).toLowerCase()}`);
+    if(d.mood) F(`Ânimo: ${MOODS[d.mood-1].toLowerCase()}`);
     html += `<div class="entry" onclick="editDiary('${e.id}')" style="cursor:pointer">
-      <div class="row" style="justify-content:space-between"><b>${fmtShort(d.date)} · ${esc(d.time)}</b>
-        <span class="small muted">${d.exemplo?'<span class="pill amber">EXEMPLO</span> ':""}${esc(e.updated_by||"")}</span></div>
-      <div class="small" style="margin-top:.2rem">${bits.join(" · ")}</div>
-      ${d.obs?`<div style="margin-top:.3rem">📝 ${esc(d.obs)}</div>`:""}
-      ${diaryAlerts(d).map(([c,t])=>`<div class="alert ${c} small">${t}</div>`).join("")}
+      <div class="row" style="justify-content:space-between"><b>${fmtShort(d.date)}, ${esc(d.time)}</b>
+        <span class="small muted">${d.exemplo?'<span class="pill amber">Exemplo</span> ':""}${esc(e.updated_by||"")}</span></div>
+      <div class="facts">${bits.join("")}</div>
+      ${d.obs?`<div style="margin-top:.55rem;font-size:.9rem">${esc(d.obs)}</div>`:""}
+      ${diaryAlerts(d).map(([c,t])=>`<div class="alert ${c}">${ic("alert")}<span>${t}</span></div>`).join("")}
     </div>`;
   });
   html += `</div><p class="small muted" style="text-align:center">Toque num registro para editar ou apagar.</p>`;
@@ -519,7 +600,7 @@ function syncDiaryForm(){
 function diaryFields(){
   return `
     <label class="f">Dor agora (0 = sem dor, 10 = pior possível)</label>
-    <div class="pain">${PAIN_COLORS.map((c,i)=>`<button type="button" class="${String(DF.pain)===String(i)?"on":""}" style="background:${c};color:${i>=8?"#fff":"#111"}" onclick="DF.pain=${i};syncDiaryForm()">${i}</button>`).join("")}</div>
+    <div class="pain">${PAIN_COLORS.map((c,i)=>`<button type="button" class="${String(DF.pain)===String(i)?"on":""}" style="--pc:${c}" onclick="DF.pain=${i};syncDiaryForm()">${i}</button>`).join("")}</div>
     <label class="f">Onde dói</label>${chipRow("painSite",["Braço direito","Costas","Barriga","Peito","Garganta","Pernas","Outro"],true)}
     <label class="f">Quanto comeu</label>${chipRow("food",["Nada","Pouco","Metade","Quase tudo","Tudo"])}
     <label class="f">Para engolir</label>${chipRow("swallow",["Normal","Dificuldade","Engasgou","Entalou"])}
@@ -527,7 +608,7 @@ function diaryFields(){
     <label class="f">Intestino funcionou hoje</label>${chipRow("bowel",["Sim","Não","Diarreia"])}
     <label class="f">Como dormiu</label>${chipRow("sleep",["Bem","Regular","Mal"])}
     <label class="f">Ânimo</label>
-    <div class="chips">${MOODS.map((m,i)=>`<button type="button" class="chip ${DF.mood===i+1?"on":""}" style="font-size:1.5rem" onclick="DF.mood=DF.mood===${i+1}?0:${i+1};syncDiaryForm()">${m}</button>`).join("")}</div>
+    <div class="chips">${MOODS.map((m,i)=>`<button type="button" class="chip ${DF.mood===i+1?"on":""}" onclick="DF.mood=DF.mood===${i+1}?0:${i+1};syncDiaryForm()">${m}</button>`).join("")}</div>
     <div class="two"><div><label class="f">Temperatura °C</label><input class="in" id="d_temp" inputmode="decimal" value="${esc(DF.temp)}" placeholder="36,5"></div>
     <div><label class="f">Peso kg</label><input class="in" id="d_weight" inputmode="decimal" value="${esc(DF.weight)}" placeholder="—"></div></div>
     <label class="f">Pressão (máxima / mínima)</label>
@@ -562,11 +643,11 @@ function lineChart(points, {min, max, color, unit, ref}){
   const path = xs.map((x,i)=>`${i?"L":"M"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
   const refY = ref!=null ? H-P-(ref-min)/(max-min)*(H-2*P) : null;
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img">
-    ${refY!=null?`<line x1="${P}" x2="${W-P}" y1="${refY}" y2="${refY}" stroke="#b91c1c" stroke-dasharray="4 4" stroke-width="1.5"/>`:""}
-    <path d="${path}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round"/>
-    ${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="4.5" fill="${color}"/>`).join("")}
-    ${xs.map((x,i)=> (i===0||i===xs.length-1||points.length<=7)?`<text x="${x}" y="${H-6}" font-size="11" text-anchor="middle" fill="#4b5563">${points[i].l}</text>`:"").join("")}
-    <text x="${xs[xs.length-1]}" y="${ys[ys.length-1]-9}" font-size="13" font-weight="800" text-anchor="middle" fill="${color}">${points[points.length-1].v}${unit}</text>
+    ${refY!=null?`<line x1="${P}" x2="${W-P}" y1="${refY}" y2="${refY}" stroke="#B8382A" stroke-dasharray="4 4" stroke-width="1.5"/>`:""}
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round"/>
+    ${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="4" fill="#fff" stroke="${color}" stroke-width="2"/>`).join("")}
+    ${xs.map((x,i)=> (i===0||i===xs.length-1||points.length<=7)?`<text x="${x}" y="${H-6}" font-size="10.5" font-family="Manrope,sans-serif" text-anchor="middle" fill="#5E6B64">${points[i].l}</text>`:"").join("")}
+    <text x="${xs[xs.length-1]}" y="${ys[ys.length-1]-9}" font-size="13" font-family="Manrope,sans-serif" font-weight="800" text-anchor="middle" fill="${color}">${points[points.length-1].v}${unit}</text>
   </svg>`;
 }
 function renderPainel(main){
@@ -589,26 +670,28 @@ function renderPainel(main){
   const lateCount = slotsFor(t).filter(s=>hmToMin(s.time)<hmToMin(nowHM())-15).flatMap(s=>s.list).filter(m=>m.data.type!=="rotina"&&!doseFor(t,m.id)).length;
   let html = "";
   const alerts = [];
-  if(lateCount) alerts.push(["red",`💊 ${lateCount} remédio(s) atrasado(s) hoje.`]);
-  if(bowelDays!=null && bowelDays>=3) alerts.push(["amber",`🚽 ${bowelDays} dias sem evacuar pelo diário. Avisar a equipe se passar disso.`]);
+  if(lateCount) alerts.push(["red",`${lateCount} remédio(s) atrasado(s) hoje.`]);
+  if(bowelDays!=null && bowelDays>=3) alerts.push(["amber",`${bowelDays} dias sem evacuar pelo diário. Avisar a equipe se passar disso.`]);
   const lastD = diary[diary.length-1]; if(lastD) diaryAlerts(lastD.data).forEach(a=>alerts.push(a));
-  if(!diary.some(e=>e.data.date===t)) alerts.push(["blue","📝 Ninguém registrou o diário hoje ainda."]);
-  alerts.forEach(([c,tx])=> html += `<div class="alert ${c}">${tx}</div>`);
-  html += `<div class="stat-grid" style="margin-top:.8rem">
-    <div class="stat" onclick="go('hoje')"><div class="v">${doneToday}/${ms.length}</div><div class="l">remédios dados hoje</div></div>
-    <div class="stat" onclick="go('hoje')"><div class="v">${ns?ns.time:"✓"}</div><div class="l">${ns?"próximo horário":"tudo dado hoje"}</div></div>
+  if(!diary.some(e=>e.data.date===t)) alerts.push(["blue","Ninguém registrou o diário hoje ainda."]);
+  alerts.forEach(([c,tx])=> html += `<div class="alert ${c}" ${c==="blue"?"onclick=\"go('diario')\"":""}>${ic(c==="blue"?"diary":"alert")}<span>${tx}</span></div>`);
+  html += `<div class="stat-grid">
+    <div class="stat hero" onclick="go('hoje')"><div class="v">${doneToday}/${ms.length}</div><div class="l">remédios dados hoje</div></div>
+    <div class="stat" onclick="go('hoje')"><div class="v">${ns?ns.time:"Feito"}</div><div class="l">${ns?"próximo horário":"tudo dado hoje"}</div></div>
     <div class="stat" onclick="go('diario')"><div class="v">${painPts.length?painPts[painPts.length-1].v+"/10":"—"}</div><div class="l">última dor registrada</div></div>
     <div class="stat" onclick="go('diario')"><div class="v" style="font-size:1.2rem">${lastFood?esc(lastFood.data.food):"—"}</div><div class="l">quanto comeu (último)</div></div>
   </div>`;
-  if(nextEv) html += `<div class="card" onclick="go('agenda')"><div class="sec-title" style="margin:0 0 .3rem">Próximo compromisso</div>
-    <div class="big" style="font-size:1.3rem">${esc(nextEv.data.title)}</div>
-    <div>${fmtDay(nextEv.data.date)}${nextEv.data.time?" às "+esc(nextEv.data.time):""} · <b style="color:var(--blue)">${relDay(nextEv.data.date)}</b></div>
-    ${nextEv.data.place?`<div class="muted">${esc(nextEv.data.place)}</div>`:""}</div>`;
-  html += `<div class="card"><div class="sec-title" style="margin:0">Remédios dados · últimos 7 dias</div>
-    <div class="bars">${adh.map(a=>`<div><span style="color:var(--ink)">${a.v}%</span><i style="height:${Math.max(a.v,3)}%;background:${a.v>=90?"var(--green)":a.v>=60?"#d97706":"var(--red)"}"></i><span>${DIAS[parseYmd(a.d).getDay()].slice(0,3)}</span></div>`).join("")}</div></div>`;
-  html += `<div class="card"><div class="sec-title" style="margin:0">Dor · últimos 14 dias</div>${lineChart(painPts,{min:0,max:10,color:"#b91c1c",unit:""})}</div>`;
-  html += `<div class="card"><div class="sec-title" style="margin:0">Temperatura · linha vermelha = febre (37,8)</div>${lineChart(tempPts,{min:35,max:40,color:"#1e3a8a",unit:"°",ref:37.8})}</div>`;
-  html += `<div class="card"><div class="sec-title" style="margin:0">Peso</div>${wPts.length>=1?lineChart(wPts,{min:Math.min(...wPts.map(p=>p.v))-3,max:Math.max(...wPts.map(p=>p.v))+3,color:"#166534",unit:"kg"}):'<p class="small muted">Registre o peso no diário (ideal 1x por semana, mesma balança).</p>'}</div>`;
+  if(nextEv) html += `<div class="card" onclick="go('agenda')"><div class="row" style="justify-content:space-between"><span class="sec-title" style="margin:0">Próximo compromisso</span><span class="pill" style="background:var(--lime)">${relDay(nextEv.data.date)==="HOJE"?"Hoje":relDay(nextEv.data.date)==="AMANHÃ"?"Amanhã":relDay(nextEv.data.date)}</span></div>
+    <div class="big" style="margin-top:.2rem">${esc(nextEv.data.title)}</div>
+    <div class="meta muted small" style="margin-top:.25rem">${fmtDay(nextEv.data.date)}${nextEv.data.time?" às "+esc(nextEv.data.time):""}${nextEv.data.place?", "+esc(nextEv.data.place):""}</div></div>`;
+  const adhMap = Object.fromEntries(adh.map(a=>[a.d,a.v]));
+  html += `<div class="card"><div class="sec-title">Remédios dados nos últimos 7 dias</div>
+    <div class="heat">${days.map(d=>{ const v=adhMap[d]; const c = v==null?"":v>=90?"full":(d===t?"part":v>=60?"part":"low");
+      return `<div><i class="${c} ${d===t?"today":""}" title="${v==null?"sem registro":v+"%"}"></i><span>${DIAS[parseYmd(d).getDay()].slice(0,3)}</span><b>${v==null?"–":v+"%"}</b></div>`;}).join("")}</div>
+    <div class="row small muted" style="margin-top:.8rem;gap:1rem;flex-wrap:wrap"><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;background:var(--lime);display:inline-block"></i>90% ou mais</span><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;background:var(--lime2);border:1.5px solid var(--lime);display:inline-block"></i>60 a 89%</span><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;border:1.5px solid var(--red);display:inline-block"></i>abaixo de 60%</span></div></div>`;
+  html += `<div class="card"><div class="sec-title">Dor nos últimos 14 dias</div>${lineChart(painPts,{min:0,max:10,color:"#15241D",unit:""})}</div>`;
+  html += `<div class="card"><div class="sec-title">Temperatura (linha vermelha: febre, 37,8 °C)</div>${lineChart(tempPts,{min:35,max:40,color:"#1E5A43",unit:"°",ref:37.8})}</div>`;
+  html += `<div class="card"><div class="sec-title">Peso</div>${wPts.length>=1?lineChart(wPts,{min:Math.min(...wPts.map(p=>p.v))-3,max:Math.max(...wPts.map(p=>p.v))+3,color:"#1E5A43",unit:"kg"}):'<p class="small muted">Registre o peso no diário (ideal 1x por semana, mesma balança).</p>'}</div>`;
   main.innerHTML = html;
 }
 
@@ -616,30 +699,30 @@ function renderPainel(main){
 function renderMais(main){
   main.innerHTML = `
     <div class="card">
-      <button class="list-btn" onclick="medList()">💊 Lista de remédios e horários <span>›</span></button>
-      <button class="list-btn" onclick="notes()">💬 Recados da família <span class="pill">${byKind("note").filter(n=>!n.data.sinais).length}</span></button>
-      <button class="list-btn" onclick="sinais()">🚨 Sinais de alerta (quando ir ao PS) <span>›</span></button>
-      <button class="list-btn" onclick="enableNotif()">🔔 Ativar avisos neste aparelho <span>›</span></button>
+      <button class="list-btn" onclick="medList()"><span class="ico">${ic("pill")}</span><span class="grow">Lista de remédios e horários</span><span class="chev">${ic("right")}</span></button>
+      <button class="list-btn" onclick="notes()"><span class="ico">${ic("chat")}</span><span class="grow">Recados da família</span><span class="pill">${byKind("note").filter(n=>!n.data.sinais).length}</span></button>
+      <button class="list-btn" onclick="sinais()"><span class="ico">${ic("alert")}</span><span class="grow">Quando ir ao pronto-socorro</span><span class="chev">${ic("right")}</span></button>
+      <button class="list-btn" onclick="enableNotif()"><span class="ico">${ic("bell")}</span><span class="grow">Ativar avisos neste aparelho</span><span class="chev">${ic("right")}</span></button>
     </div>
     <div class="card">
-      <div style="font-weight:800;margin-bottom:.5rem">Tamanho da letra</div>
-      <div class="row">${[1,2,3].map(n=>`<button class="btn ${font===n?"primary":""}" style="flex:1;font-size:${.8+n*.2}rem" onclick="setFont(${n})">A</button>`).join("")}</div>
+      <div class="row" style="margin-bottom:.7rem"><span class="list-btn" style="padding:0;border:0;cursor:default"><span class="ico">${ic("type")}</span><span class="grow">Tamanho da letra</span></span></div>
+      <div class="row">${[1,2,3].map(n=>`<button class="btn ${font===n?"primary":""}" style="flex:1;font-size:${.75+n*.2}rem" onclick="setFont(${n})" aria-label="Letra ${["","normal","grande","maior"][n]}">A</button>`).join("")}</div>
     </div>
     <div class="card">
-      <button class="list-btn" onclick="askWho()">👤 Trocar quem está usando (${esc(S.me)}) <span>›</span></button>
-      <button class="list-btn" onclick="changePin()">🔑 Trocar PIN da família <span>›</span></button>
-      <button class="list-btn" onclick="refresh()">🔄 Atualizar agora <span>›</span></button>
-      <button class="list-btn" onclick="if(confirm('Sair deste aparelho?')){LS.set('cj_pin','');S.pin='';render()}">🚪 Sair deste aparelho <span>›</span></button>
+      <button class="list-btn" onclick="askWho()"><span class="ico">${ic("user")}</span><span class="grow">Trocar quem está usando</span><span class="small muted">${esc(S.me)}</span></button>
+      <button class="list-btn" onclick="changePin()"><span class="ico">${ic("key")}</span><span class="grow">Trocar PIN da família</span><span class="chev">${ic("right")}</span></button>
+      <button class="list-btn" onclick="refresh()"><span class="ico">${ic("refresh")}</span><span class="grow">Atualizar agora</span><span class="chev">${ic("right")}</span></button>
+      <button class="list-btn" onclick="if(confirm('Sair deste aparelho?')){LS.set('cj_pin','');S.pin='';render()}"><span class="ico">${ic("logout")}</span><span class="grow">Sair deste aparelho</span><span class="chev">${ic("right")}</span></button>
     </div>
-    <p class="small muted" style="text-align:center">Ferramenta de organização da família. Não substitui orientação médica.</p>`;
+    <p class="small muted" style="text-align:center;margin:1.2rem 0">Dito's Health organiza o cuidado da família.<br>Não substitui orientação médica.</p>`;
 }
 function setFont(n){ LS.set("cj_font", n); location.reload(); }
 function medList(){
   const all = byKind("med").sort((a,b)=>a.data.time.localeCompare(b.data.time)||(a.data.order||0)-(b.data.order||0));
   openSheet(`<h2>Remédios e horários</h2><p class="small muted">Toque para editar. Mudanças valem para todos a partir de agora.</p>
-    <button class="btn primary block" onclick="closeSheet();editMed()">＋ Adicionar</button>
+    <button class="btn primary block" onclick="closeSheet();editMed()">${ic("plus")} Adicionar remédio</button>
     <div class="card">${all.map(m=>`<button class="list-btn" onclick="closeSheet();editMed('${m.id}')" style="${m.data.active===false?"opacity:.45":""}">
-      <span><b>${esc(m.data.time)}</b> · ${m.data.type==="rotina"?"🍽️ ":""}${esc(m.data.name)}${m.data.active===false?" (suspenso)":""}<br><span class="small muted">${esc(m.data.detail||"")}</span></span><span>›</span></button>`).join("")}</div>`, null, "Fechar");
+      <span class="ico" style="font-weight:800;font-size:.8rem;width:3rem">${esc(m.data.time)}</span><span class="grow">${esc(m.data.name)}${m.data.active===false?" (suspenso)":""}${m.data.detail?`<br><span class="small muted">${esc(m.data.detail)}</span>`:""}</span><span class="chev">${ic(m.data.type==="rotina"?"food":"right")}</span></button>`).join("")}</div>`, null, "Fechar");
 }
 function editMed(id){
   const m = id ? S.items.find(i=>i.id===id) : {data:{time:"08:00",name:"",detail:"",type:"remedio",active:true,order:99}};
@@ -648,7 +731,7 @@ function editMed(id){
     <label class="f">Nome</label><input class="in" id="mN" value="${esc(d.name)}" placeholder="Ex.: Dipirona">
     <label class="f">Horário</label><input class="in" type="time" id="mT" value="${esc(d.time)}">
     <label class="f">Dose / como tomar</label><input class="in" id="mD" value="${esc(d.detail)}" placeholder="Ex.: 1 comprimido, com comida">
-    <label class="f">Tipo</label><select class="in" id="mY"><option value="remedio" ${d.type!=="rotina"?"selected":""}>💊 Remédio</option><option value="rotina" ${d.type==="rotina"?"selected":""}>🍽️ Refeição / rotina</option></select>
+    <label class="f">Tipo</label><select class="in" id="mY"><option value="remedio" ${d.type!=="rotina"?"selected":""}>Remédio</option><option value="rotina" ${d.type==="rotina"?"selected":""}>Refeição ou rotina</option></select>
     <label class="f"><input type="checkbox" id="mA" ${d.active!==false?"checked":""} style="width:1.4rem;height:1.4rem;vertical-align:middle"> Em uso (desmarque para suspender)</label>
     <p class="small muted">Para o mesmo remédio em dois horários, cadastre duas vezes.</p>
     ${id?`<button class="btn red block" onclick="if(confirm('Apagar este remédio da lista?')){closeSheet();del('${id}')}">Apagar</button>`:""}`,
@@ -669,8 +752,8 @@ function notes(){
 async function addNote(){ const t = $("#nT").value.trim(); if(!t) return; await save("note",{text:t,at:new Date().toISOString()}); closeSheet(); notes(); }
 function sinais(){
   const list = byKind("note").filter(n=>n.data.sinais).sort((a,b)=>(a.data.order||0)-(b.data.order||0));
-  openSheet(`<h2>🚨 Quando procurar atendimento</h2>
-    ${list.length?list.map(n=>`<div class="alert ${n.data.level==="red"?"red":"amber"}">${esc(n.data.text)}</div>`).join(""):'<p class="muted">Nenhuma orientação cadastrada.</p>'}
+  openSheet(`<h2>${ic("alert")} Quando procurar atendimento</h2>
+    ${list.length?list.map(n=>`<div class="alert ${n.data.level==="red"?"red":"amber"}">${ic("alert")}<span>${esc(n.data.text)}</span></div>`).join(""):'<p class="muted">Nenhuma orientação cadastrada.</p>'}
     <p class="small muted">Leve sempre o resumo clínico e a lista de remédios.</p>`, null, "Fechar");
 }
 async function enableNotif(){
@@ -700,7 +783,7 @@ function openSheet(html, onSave, closeLabel){
   document.body.appendChild(bg); document.body.style.overflow="hidden";
 }
 function closeSheet(){ const s=$("#sheet"); if(s) s.remove(); document.body.style.overflow=""; }
-async function doSheetSave(btn){ btn.disabled=true; btn.textContent="Salvando…"; const r = await sheetSave(); if(r===false){ btn.disabled=false; btn.textContent="Salvar"; return; } closeSheet(); toast("Salvo ✓"); }
+async function doSheetSave(btn){ btn.disabled=true; btn.textContent="Salvando…"; const r = await sheetSave(); if(r===false){ btn.disabled=false; btn.textContent="Salvar"; return; } closeSheet(); toast("Salvo"); }
 
 /* ---------- Avisos locais e atualização ---------- */
 let lastNotified = LS.get("cj_notified","");
