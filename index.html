@@ -262,7 +262,7 @@ let pinTyped = "";
 function renderLogin(app){
   app.innerHTML = `<div class="login wrap">
     <div style="text-align:center;font-size:3rem">💙</div>
-    <h1 style="text-align:center;font-size:1.5rem">Cuidado ${esc(CONFIG.paciente.split(" ")[0])}</h1>
+    <h1 style="text-align:center;font-size:1.5rem">Cuidado ${esc(CONFIG.paciente)}</h1>
     <p class="muted" style="text-align:center">Digite o PIN da família</p>
     ${DEMO?'<p class="small" style="text-align:center"><b>Demonstração: PIN 1234</b></p>':""}
     <div class="pinbox">${[0,1,2,3,4,5].map(i=>`<i class="${i<pinTyped.length?"f":""}"></i>`).join("")}</div>
