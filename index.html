@@ -742,7 +742,7 @@ function diaryFields(){
   return `
     <label class="f">Dor agora (0 = sem dor, 10 = pior possível)</label>
     <div class="pain">${PAIN_COLORS.map((c,i)=>`<button type="button" class="${String(DF.pain)===String(i)?"on":""}" style="--pc:${c}" onclick="DF.pain=${i};syncDiaryForm()">${i}</button>`).join("")}</div>
-    <label class="f">Onde dói</label>${chipRow("painSite",["Braço direito","Costas","Barriga","Peito","Garganta","Pernas","Outro"],true)}
+    <label class="f">Onde dói</label>${chipRow("painSite",["Coto do braço","Membro fantasma","Costas","Barriga","Peito","Garganta","Pernas","Outro"],true)}
     <label class="f">Quanto comeu</label>${chipRow("food",["Nada","Pouco","Metade","Quase tudo","Tudo"])}
     <label class="f">Para engolir</label>${chipRow("swallow",["Normal","Dificuldade","Engasgou","Entalou"])}
     <label class="f">Náusea ou vômito</label>${chipRow("nausea",["Não","Leve","Forte","Vomitou"])}
