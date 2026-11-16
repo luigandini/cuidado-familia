@@ -353,6 +353,57 @@ const byKind = k => S.items.filter(i=>i.kind===k);
 const meds = () => byKind("med").filter(m=>m.data.active!==false)
   .sort((a,b)=> a.data.time.localeCompare(b.data.time) || (a.data.order||0)-(b.data.order||0));
 function doseFor(date, medId){ return S.items.find(i=>i.kind==="dose" && i.data.date===date && i.data.med===medId); }
+/* ---- pausa dos avisos de remédio (ex.: internação) ---- */
+const pauseItem = () => byKind("setting").find(i=>i.data.key==="medPause");
+const pauseNow = () => { const p=pauseItem(); return p && (p.data.periods||[]).find(x=>!x.to); };
+function isPaused(day){ const p=pauseItem(); return !!p && (p.data.periods||[]).some(x=>x.from<=day && (!x.to || day<x.to)); }
+function pauseSheet(){
+  const cur = pauseNow();
+  if(cur){
+    openSheet(`<h2>Avisos de remédio pausados</h2>
+      <p>Desde <b>${fmtDay(cur.from)}</b>${cur.reason?` (${esc(cur.reason)})`:""}, pausado por ${esc(cur.by||"")}.</p>
+      <p class="small muted">Ao retomar, os avisos voltam a sair a partir do dia escolhido. Os dias pausados não contam como remédio esquecido.</p>
+      <label class="f">Retomar a partir de</label><input class="in" type="date" id="pzTo" value="${today()}" min="${cur.from}">`,
+      async ()=>{ const to=$("#pzTo").value||today(); const p=pauseItem(); const periods=(p.data.periods||[]).map(x=>x===cur||(!x.to&&x.from===cur.from)?{...x,to,resumed_by:S.me}:x);
+        await save("setting", {...p.data, periods}, p.id); toast("Avisos retomados"); });
+    $("#sheet .btn.primary").textContent="Retomar avisos";
+  } else {
+    openSheet(`<h2>Pausar avisos de remédio</h2>
+      <p class="small muted">Use quando ele não estiver em casa (internação, viagem). Ninguém recebe aviso de remédio e os dias pausados não contam como esquecidos. Avisos de consultas e exames continuam.</p>
+      <label class="f">Pausar desde</label><input class="in" type="date" id="pzFrom" value="${today()}" max="${today()}">
+      <label class="f">Motivo</label><input class="in" id="pzWhy" value="Internação">`,
+      async ()=>{ const from=$("#pzFrom").value||today(); const p=pauseItem(); const per={from, to:null, reason:$("#pzWhy").value.trim(), by:S.me};
+        if(p) await save("setting", {...p.data, periods:[...(p.data.periods||[]), per]}, p.id); else await save("setting", {key:"medPause", periods:[per]}); });
+    $("#sheet .btn.primary").textContent="Pausar avisos";
+  }
+}
+/* ---- registrar vários remédios de uma vez (junto, adiantado ou depois) ---- */
+function pendingFor(day){ return slotsFor(day).map(s=>({time:s.time, list:s.list.filter(m=>m.data.type!=="rotina" && !doseFor(day,m.id))})).filter(s=>s.list.length); }
+function batchSheet(day){
+  day = day || S.day;
+  const t = today(), now = hmToMin(nowHM()), past = day < t;
+  const groups = pendingFor(day);
+  if(!groups.length){ toast("Todos os remédios deste dia já estão marcados"); return; }
+  const pre = s => past || hmToMin(s.time) <= now + 30;
+  openSheet(`<h2>Marcar vários remédios</h2>
+    <p class="small muted">${past?`Remédios de <b>${fmtDay(day)}</b> sem registro. Desmarque o que <b>não</b> foi dado.`:`Marque os que foram dados agora, inclusive os de outros horários dados juntos. Os avisos desses horários deixam de sair.`}</p>
+    <div class="row" style="gap:.5rem;margin:.6rem 0"><button class="btn sm" onclick="document.querySelectorAll('#sheet .bx').forEach(c=>c.checked=true)">Marcar todos</button><button class="btn sm" onclick="document.querySelectorAll('#sheet .bx').forEach(c=>c.checked=false)">Limpar</button></div>
+    ${groups.map(g=>`<div class="sec-title" style="margin:.9rem 0 .3rem">${g.time}${!past&&hmToMin(g.time)>now+30?' <span class="small muted">(horário ainda não chegou)</span>':""}</div>
+      ${g.list.map(m=>`<label class="row" style="gap:.7rem;padding:.55rem 0;border-top:1px solid var(--line)"><input type="checkbox" class="bx" value="${m.id}" ${pre(g)?"checked":""} style="width:1.5rem;height:1.5rem"><span>${esc(m.data.name)}</span></label>`).join("")}`).join("")}`,
+    async ()=>{
+      const ids=[...document.querySelectorAll('#sheet .bx:checked')].map(c=>c.value);
+      if(!ids.length){ toast("Nada marcado"); return false; }
+      const at=new Date().toISOString(), late = past;
+      for(const id of ids){ const r = await api.save(S.pin, null, "dose", {date:day, med:id, by:S.me, at, obs:"", lote:true, late}, S.me);
+        if(r.error||!r.item){ toast("Parte não salvou. Verifique a internet."); render(); return false; } S.items.push(r.item); }
+      render(); updateBadge();
+    });
+  $("#sheet .btn.primary").textContent="Confirmar";
+}
+function missedDays(){ // dias recentes (até 3) com remédio sem registro, fora das pausas
+  const t=today(), first = byKind("dose").map(x=>x.data.date).sort()[0]; if(!first) return [];
+  return [1,2,3].map(n=>addDays(t,-n)).filter(d=>d>=first && !isPaused(d)).map(d=>({d, n: pendingFor(d).reduce((a,g)=>a+g.list.length,0)})).filter(x=>x.n);
+}
 
 async function refresh(silent){
   if(!S.pin) return;
@@ -542,11 +593,18 @@ function renderHoje(main){
   const slots = slotsFor(d);
   const all = slots.flatMap(s=>s.list).filter(m=>m.data.type!=="rotina");
   const done = all.filter(m=>doseFor(d,m.id)).length;
+  const paused = isPaused(d), pz = pauseNow();
   let html = "";
+  if(isToday && pz){
+    html += `<div class="alert amber" onclick="pauseSheet()" style="align-items:center">${ic("bell")}<span style="flex:1">Avisos de remédio <b>pausados</b> desde ${fmtShort(pz.from)}${pz.reason?" ("+esc(pz.reason)+")":""}.</span><button class="btn sm" onclick="event.stopPropagation();pauseSheet()">Retomar</button></div>`;
+  }
+  if(isToday && !paused) missedDays().forEach(x=>{
+    html += `<div class="alert red" style="align-items:center">${ic("alert")}<span style="flex:1">${relDay(x.d)==="ontem"?"Ontem":fmtDay(x.d)}: <b>${x.n} remédio(s) sem registro</b>.</span><button class="btn sm" onclick="event.stopPropagation();S.day='${x.d}';render();batchSheet('${x.d}')">Registrar</button></div>`;
+  });
   if(isToday && PUSH.checked && !PUSH.on && !DEMO && !LS.get("cj_push_dismiss",false)){
     html += `<div class="alert blue" style="align-items:center">${ic("bell")}<span style="flex:1">Receba o aviso da hora do remédio neste celular.</span><button class="btn sm" style="background:var(--lime);border-color:var(--lime)" onclick="event.stopPropagation();enableNotif()">Ativar</button></div>`;
   }
-  if(isToday){
+  if(isToday && !paused){
     const ns = nextSlot();
     if(ns){
       const when = ns.diff>0 ? `em ${ns.diff>=60?Math.floor(ns.diff/60)+"h"+pad(ns.diff%60):ns.diff+" min"}` : (ns.late?`Atrasado ${-ns.diff>=60?Math.floor(-ns.diff/60)+"h"+pad(-ns.diff%60):-ns.diff+" min"}`:"Agora");
@@ -555,10 +613,13 @@ function renderHoje(main){
         <div class="when">${ns.time}</div>
         <div class="meds">${ns.pend.map(m=>esc(m.data.name)).join(", ")}</div>
         <button class="btn green block" style="margin-top:1rem;min-height:3.4rem" onclick="giveSlot('${ns.time}')">${ic("check")} Dei esses remédios</button>
+        <button class="btn block" style="margin-top:.5rem" onclick="batchSheet()">Dei remédios de vários horários</button>
       </div>`;
     } else if(all.length){
       html += `<div class="card next ok"><span class="pill green">${ic("check")} Tudo em dia</span><div class="big" style="margin-top:.6rem">Todos os remédios de hoje foram dados</div></div>`;
     }
+  }
+  if(isToday){
     const evs = byKind("event").filter(e=>e.data.date===d && !e.data.done).sort((a,b)=>(a.data.time||"").localeCompare(b.data.time||""));
     evs.forEach(e=> html += `<div class="alert blue" onclick="go('agenda')">${ic("calendar")}<span>Hoje ${e.data.time?"às "+esc(e.data.time):""}: <b>${esc(e.data.title)}</b>${e.data.place?", "+esc(e.data.place):""}</span></div>`);
     const tm = byKind("event").filter(e=>e.data.date===addDays(d,1) && !e.data.done);
@@ -569,12 +630,12 @@ function renderHoje(main){
       <div style="text-align:center"><b>${isToday?"Hoje":relDay(d)}</b><div class="small muted">${fmtDay(d)}</div></div>
       <button class="btn sm" aria-label="Próximo dia" onclick="S.day=addDays(S.day,1);render()" ${isToday?"disabled style='opacity:.3'":""}>${ic("right")}</button>
     </div>
-    <div class="row" style="justify-content:space-between;margin-top:.8rem"><b>${done} de ${all.length} remédios dados</b><span class="small muted">${all.length?Math.round(done/all.length*100):0}%</span></div>
+    <div class="row" style="justify-content:space-between;margin-top:.8rem"><b>${done} de ${all.length} remédios dados</b><span class="small muted">${paused?"pausado":(all.length?Math.round(done/all.length*100):0)+"%"}</span></div>
     <div class="progress"><div style="width:${all.length?Math.round(done/all.length*100):0}%"></div></div>
   </div>`;
   if(!slots.length) html += `<div class="card">Nenhum remédio cadastrado. Vá em <b>Mais → Lista de remédios</b>.</div>`;
   slots.forEach(s=>{
-    const late = isToday && hmToMin(s.time) < now - 15 || d < today();
+    const late = !paused && (isToday && hmToMin(s.time) < now - 15 || d < today());
     const sp = s.list.filter(m=>m.data.type!=="rotina"), sd = sp.filter(m=>doseFor(d,m.id)).length;
     html += `<div class="slot"><div class="slot-h"><span class="t">${s.time}</span><span class="state">${sp.length? (sd===sp.length?"Concluído":`${sd}/${sp.length}`):""}</span></div><div class="slot-list">`;
     s.list.forEach(m=>{
@@ -583,7 +644,7 @@ function renderHoje(main){
         <span class="box">${dose?ic("check"):(m.data.type==="rotina"?"":"")}</span>
         <span style="flex:1"><span class="nm">${esc(m.data.name)}</span>
           ${m.data.detail?`<br><span class="dt">${esc(m.data.detail)}</span>`:""}
-          ${dose?`<br><span class="by">Dado por ${esc(dose.data.by||"")} às ${fmtTime(dose.data.at)}</span>`:""}
+          ${dose?`<br><span class="by">${dose.data.late?`Registrado depois por ${esc(dose.data.by||"")} em ${fmtShort(ymd(new Date(dose.data.at)))} às ${fmtTime(dose.data.at)}`:`${dose.data.lote?"Marcado":"Dado"} por ${esc(dose.data.by||"")} às ${fmtTime(dose.data.at)}`}</span>`:""}
           ${dose&&dose.data.obs?`<br><span class="ob">${esc(dose.data.obs)}</span>`:""}
         </span>
         ${m.data.type==="rotina"&&!dose?`<span class="muted">${ic("food")}</span>`:""}
@@ -592,6 +653,8 @@ function renderHoje(main){
     });
     html += `</div></div>`;
   });
+  if(slots.length && pendingFor(d).length && d<=today()) html += `<button class="btn primary block" style="margin-top:1rem;min-height:3.2rem" onclick="batchSheet()">${ic("check")} Marcar vários${d<today()?" deste dia":""}</button>`;
+  if(isToday && !pz) html += `<button class="btn block" style="margin-top:.6rem" onclick="pauseSheet()">${ic("bell")} Pausar avisos de remédio</button>`;
   html += `<p class="small muted" style="text-align:center;margin:1.2rem 0">Toque no remédio para marcar. Toque de novo para desmarcar.</p>`;
   main.innerHTML = html;
 }
@@ -800,7 +863,7 @@ function renderPainel(main){
   const doneToday = ms.filter(m=>doseFor(t,m.id)).length;
   const days = [...Array(7)].map((_,i)=>addDays(t,i-6));
   const firstDose = byKind("dose").map(x=>x.data.date).sort()[0] || t;
-  const adh = days.filter(d=>d>=firstDose).map(d=>({d, v: ms.length? Math.round(ms.filter(m=>doseFor(d,m.id)).length/ms.length*100):0}));
+  const adh = days.filter(d=>d>=firstDose && !isPaused(d)).map(d=>({d, v: ms.length? Math.round(ms.filter(m=>doseFor(d,m.id)).length/ms.length*100):0}));
   const nextEv = byKind("event").filter(e=>e.data.date>=t && !e.data.done).sort((a,b)=>(a.data.date+(a.data.time||"99")).localeCompare(b.data.date+(b.data.time||"99")))[0];
   const diary = byKind("diary").sort((a,b)=>(a.data.date+a.data.time).localeCompare(b.data.date+b.data.time));
   const since14 = addDays(t,-13);
@@ -814,7 +877,8 @@ function renderPainel(main){
   const lateCount = slotsFor(t).filter(s=>hmToMin(s.time)<hmToMin(nowHM())-15).flatMap(s=>s.list).filter(m=>m.data.type!=="rotina"&&!doseFor(t,m.id)).length;
   let html = "";
   const alerts = [];
-  if(lateCount) alerts.push(["red",`${lateCount} remédio(s) atrasado(s) hoje.`]);
+  if(lateCount && !isPaused(t)) alerts.push(["red",`${lateCount} remédio(s) atrasado(s) hoje.`]);
+  if(pauseNow()) alerts.push(["amber",`Avisos de remédio pausados desde ${fmtShort(pauseNow().from)}${pauseNow().reason?" ("+esc(pauseNow().reason)+")":""}.`]);
   if(bowelDays!=null && bowelDays>=3) alerts.push(["amber",`${bowelDays} dias sem evacuar pelo diário. Avisar a equipe se passar disso.`]);
   const lastD = diary[diary.length-1]; if(lastD) diaryAlerts(lastD.data).forEach(a=>alerts.push(a));
   if(!diary.some(e=>e.data.date===t)) alerts.push(["blue","Ninguém registrou o diário hoje ainda."]);
@@ -831,7 +895,7 @@ function renderPainel(main){
   const adhMap = Object.fromEntries(adh.map(a=>[a.d,a.v]));
   html += `<div class="card"><div class="sec-title">Remédios dados nos últimos 7 dias</div>
     <div class="heat">${days.map(d=>{ const v=adhMap[d]; const c = v==null?"":v>=90?"full":(d===t?"part":v>=60?"part":"low");
-      return `<div><i class="${c} ${d===t?"today":""}" title="${v==null?"sem registro":v+"%"}"></i><span>${DIAS[parseYmd(d).getDay()].slice(0,3)}</span><b>${v==null?"–":v+"%"}</b></div>`;}).join("")}</div>
+      return `<div><i class="${c} ${d===t?"today":""}" title="${isPaused(d)?"pausado":v==null?"sem registro":v+"%"}"></i><span>${DIAS[parseYmd(d).getDay()].slice(0,3)}</span><b>${isPaused(d)?"pausa":v==null?"–":v+"%"}</b></div>`;}).join("")}</div>
     <div class="row small muted" style="margin-top:.8rem;gap:1rem;flex-wrap:wrap"><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;background:var(--lime);display:inline-block"></i>90% ou mais</span><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;background:var(--lime2);border:1.5px solid var(--lime);display:inline-block"></i>60 a 89%</span><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;border:1.5px solid var(--red);display:inline-block"></i>abaixo de 60%</span></div></div>`;
   html += `<div class="card"><div class="sec-title">Dor nos últimos 14 dias</div>${lineChart(painPts,{min:0,max:10,color:"#15241D",unit:""})}</div>`;
   html += `<div class="card"><div class="sec-title">Temperatura (linha vermelha: febre, 37,8 °C)</div>${lineChart(tempPts,{min:35,max:40,color:"#1E5A43",unit:"°",ref:37.8})}</div>`;
@@ -991,6 +1055,7 @@ function renderMais(main){
       <button class="list-btn" onclick="medList()"><span class="ico">${ic("pill")}</span><span class="grow">Lista de remédios e horários</span><span class="chev">${ic("right")}</span></button>
       <button class="list-btn" onclick="notes()"><span class="ico">${ic("chat")}</span><span class="grow">Recados da família</span><span class="pill">${byKind("note").filter(n=>!n.data.sinais).length}</span></button>
       <button class="list-btn" onclick="sinais()"><span class="ico">${ic("alert")}</span><span class="grow">Quando ir ao pronto-socorro</span><span class="chev">${ic("right")}</span></button>
+      <button class="list-btn" onclick="pauseSheet()"><span class="ico">${ic("clock")}</span><span class="grow">Pausar avisos de remédio</span>${pauseNow()?`<span class="pill amber">Pausado</span>`:`<span class="chev">${ic("right")}</span>`}</button>
       <button class="list-btn" onclick="pushSheet()"><span class="ico">${ic("bell")}</span><span class="grow">Avisos no celular</span>${PUSH.checked?`<span class="pill" style="${PUSH.on?"background:var(--lime)":""}">${PUSH.on?"Ligado":"Desligado"}</span>`:`<span class="chev">${ic("right")}</span>`}</button>
     </div>
     <div class="card">
