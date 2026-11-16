@@ -98,7 +98,7 @@ header.top .sub{font-size:.875rem;color:var(--muted);margin-top:.2rem}
 .datehead .rel{font-weight:700;color:var(--forest);font-size:.75rem;background:var(--blue2);padding:.2rem .55rem;border-radius:999px}
 .datehead .rel.hot{background:var(--lime);color:var(--ink)}
 nav.tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(.6rem + env(safe-area-inset-bottom));width:min(520px,calc(100% - 1.2rem));background:var(--ink);border-radius:999px;display:flex;justify-content:space-between;padding:.35rem;z-index:20;box-shadow:0 10px 30px rgba(21,36,29,.25)}
-nav.tabs button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.45rem 0;font-size:.6875rem;font-weight:700;color:#AEBBB3;border-radius:999px;cursor:pointer}
+nav.tabs button{flex:1;min-width:0;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.45rem 0;font-size:.625rem;letter-spacing:-.01em;font-weight:700;color:#AEBBB3;border-radius:999px;cursor:pointer}
 nav.tabs button svg.i{width:1.35rem;height:1.35rem}
 nav.tabs button.on{color:var(--ink);background:var(--lime)}
 .alert{display:flex;gap:.6rem;align-items:flex-start;border-radius:var(--r-md);padding:.8rem .9rem;margin:.6rem 0;font-weight:600;font-size:.9rem;line-height:1.4}
@@ -163,6 +163,30 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:3px solid var(--lime);b
 .list-btn .grow{flex:1}
 .list-btn .chev{color:var(--faint)}
 .hide{display:none!important}
+.rec{padding:.85rem 0;border-top:1px solid var(--line);cursor:pointer}
+.rec:first-child{border-top:0;padding-top:.1rem}
+.rec .rh{display:flex;align-items:center;gap:.6rem}
+.rec .rico{flex:0 0 2.1rem;height:2.1rem;border-radius:11px;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.rec .rt{font-weight:700;font-size:.95rem;line-height:1.25}
+.rec .rd{font-size:.75rem;color:var(--muted);font-weight:600}
+.rec .rs{font-size:.875rem;margin:.45rem 0 0 2.7rem;color:var(--ink)}
+.rec .rs.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rec .files{display:flex;flex-wrap:wrap;gap:.4rem;margin:.55rem 0 0 2.7rem}
+.monthhead{font-size:.8125rem;font-weight:700;color:var(--muted);margin:1rem .1rem .3rem}
+.searchbox{display:flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:.2rem .9rem;margin-top:.75rem}
+.searchbox input{flex:1;border:0;outline:0;background:transparent;min-height:2.6rem;font-size:1rem}
+.sumsec{margin-top:.8rem}
+.sumsec b{display:block;font-size:.8125rem;color:var(--muted);margin-bottom:.15rem}
+.qitem{padding:.7rem 0;border-top:1px solid var(--line)}
+.qitem:first-child{border-top:0;padding-top:0}
+.qitem .q{font-weight:700}
+.qitem .why{font-size:.8125rem;color:var(--muted);margin-top:.15rem}
+.doctor-view{position:fixed;inset:0;z-index:95;background:#fff;overflow:auto;padding:calc(1.2rem + env(safe-area-inset-top)) 1.2rem 2rem}
+.doctor-view h1{font-size:1.6rem;font-weight:800}
+.doctor-view .dv-sec{margin-top:1.1rem}
+.doctor-view .dv-sec h3{font-size:.85rem;color:var(--muted);font-weight:700;margin-bottom:.25rem}
+.doctor-view .dv-sec p{margin:0;font-size:1.05rem;line-height:1.45}
+.doctor-view .close{position:sticky;top:0;float:right}
 .top-actions{display:flex;align-items:center;gap:.45rem}
 .bellbtn{position:relative;width:2.4rem;height:2.4rem;border-radius:999px;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);padding:0}
 .bellbtn svg.i{width:1.2rem;height:1.2rem}
@@ -195,7 +219,8 @@ const CONFIG = {
   supabaseKey: "sb_publishable_JEkTbX-8KE8AGSJpnd9XhQ_4ohxSiMp",
   paciente: "Seu José",
   vapidPublic: "BEpUCZRDE4xr_fl5c6Y3Fm8y_ZwsbDGibZ0MuPhO44dpgJn98rYL4Tc6jMwG5wF9hYmeX4EmbOiCjzv4x019V7o",
-  pushFn: "https://lkmviblxbtnznyxmlsiz.supabase.co/functions/v1/dito-push"
+  pushFn: "https://lkmviblxbtnznyxmlsiz.supabase.co/functions/v1/dito-push",
+  filesFn: "https://lkmviblxbtnznyxmlsiz.supabase.co/functions/v1/dito-files"
 };
 const DEMO = !/^https:\/\//.test(CONFIG.supabaseUrl);
 
@@ -254,7 +279,16 @@ const ICONS = {
   syringe:'<path d="m18 2 4 4M17 7l3-3M19 9 8.7 19.3a2.4 2.4 0 0 1-3.4 0l-.6-.6a2.4 2.4 0 0 1 0-3.4L15 5M9 11l4 4M5 19l-3 3M14 4l6 6"/>',
   type:'<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
   temp:'<path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>',
-  dot:'<circle cx="12" cy="12" r="3"/>'
+  dot:'<circle cx="12" cy="12" r="3"/>',
+  folder:'<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  file:'<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M9 13h6M9 17h4"/>',
+  scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/>',
+  micro:'<path d="M6 18h8M3 22h18M14 22a7 7 0 1 0 0-14h-1M9 14h2M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/>',
+  doctor:'<path d="M11 2v2M5 2v2M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/>',
+  upload:'<path d="M12 15V3M7 8l5-5 5 5M5 21h14"/>',
+  expand:'<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
+  help:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>'
 };
 const ic = (n, cls="") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||""}</svg>`;
 
@@ -310,7 +344,7 @@ const S = {
   showPast: false,
   notices: [], readSet: new Set()
 };
-{ const t = new URLSearchParams(location.search).get("tab"); if(["hoje","agenda","diario","painel","mais"].includes(t)) S.tab = t; }
+{ const t = new URLSearchParams(location.search).get("tab"); if(["hoje","agenda","diario","painel","pront","mais"].includes(t)) S.tab = t; }
 const font = LS.get("cj_font", 1);
 document.documentElement.classList.toggle("f2", font===2);
 document.documentElement.classList.toggle("f3", font===3);
@@ -352,7 +386,7 @@ function render(){
   if(!S.pin) return renderLogin(app);
   if(!S.me) return renderWho(app);
   if(!S.loaded){ app.innerHTML = `<div class="login"><p class="big" style="text-align:center">Carregando…</p></div>`; return; }
-  const titles = {hoje:"Remédios de hoje",agenda:"Consultas e exames",diario:"Diário",painel:"Visão geral",mais:"Mais opções"};
+  const titles = {hoje:"Remédios de hoje",agenda:"Consultas e exames",diario:"Diário",painel:"Visão geral",pront:"Prontuário",mais:"Mais opções"};
   app.innerHTML = `
     ${DEMO?'<div class="demo">MODO DEMONSTRAÇÃO · dados só neste aparelho · PIN 1234</div>':""}
     ${!S.online?'<div class="demo">SEM INTERNET · mostrando a última cópia</div>':""}
@@ -363,10 +397,10 @@ function render(){
     </div></header>
     <main class="wrap" id="main"></main>
     <nav class="tabs">
-      ${[["hoje","pill","Hoje"],["agenda","calendar","Agenda"],["diario","diary","Diário"],["painel","pulse","Painel"],["mais","grid","Mais"]]
+      ${[["hoje","pill","Hoje"],["agenda","calendar","Agenda"],["diario","diary","Diário"],["painel","pulse","Painel"],["pront","folder","Prontuário"],["mais","grid","Mais"]]
         .map(([k,n,l])=>`<button class="${S.tab===k?"on":""}" onclick="go('${k}')" aria-current="${S.tab===k?"page":"false"}">${ic(n)}${l}</button>`).join("")}
     </nav>`;
-  ({hoje:renderHoje,agenda:renderAgenda,diario:renderDiario,painel:renderPainel,mais:renderMais})[S.tab]($("#main"));
+  ({hoje:renderHoje,agenda:renderAgenda,diario:renderDiario,painel:renderPainel,pront:renderPront,mais:renderMais})[S.tab]($("#main"));
   updateBadge();
 }
 function go(t){ S.tab=t; if(t==="hoje") S.day=today(); render(); window.scrollTo(0,0); }
@@ -745,6 +779,149 @@ function renderPainel(main){
   html += `<div class="card"><div class="sec-title">Glicose nos últimos 14 dias (linha vermelha: 70 mg/dL)</div>${gPts.length?lineChart(gPts,{min:40,max:Math.max(300,...gPts.map(p=>p.v))+20,color:"#15241D",unit:"",ref:70}):'<p class="small muted">Registre a glicose no diário para ver a evolução.</p>'}</div>`;
   html += `<div class="card"><div class="sec-title">Peso</div>${wPts.length>=1?lineChart(wPts,{min:Math.min(...wPts.map(p=>p.v))-3,max:Math.max(...wPts.map(p=>p.v))+3,color:"#1E5A43",unit:"kg"}):'<p class="small muted">Registre o peso no diário (ideal 1x por semana, mesma balança).</p>'}</div>`;
   main.innerHTML = html;
+}
+
+/* ---------- PRONTUÁRIO ---------- */
+const RTYPES = {imagem:["Imagem","scan"], laboratorio:["Laboratório","flask"], patologia:["Biópsia / patologia","micro"], consulta:["Consulta","doctor"], procedimento:["Procedimento","steth"], outro:["Outro","file"]};
+let PR = { q:"", type:"", open:{} };
+const summaryItem = () => byKind("summary").sort((a,b)=>(b.updated_at||"").localeCompare(a.updated_at||""))[0];
+const activeQuestions = () => byKind("questions").filter(q=>q.data.active!==false).sort((a,b)=>(b.data.created||"").localeCompare(a.data.created||""))[0];
+function fmtFull(s){ const d=parseYmd(s); return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`; }
+function ageOf(b){ if(!b) return ""; const d=parseYmd(b), n=new Date(); let a=n.getFullYear()-d.getFullYear(); if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate())) a--; return a; }
+const MESES_LONG = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+function renderPront(main){
+  const sm = summaryItem(), qs = activeQuestions();
+  let html = "";
+  // Resumo
+  html += `<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><div class="sec-title" style="margin:0">Resumo clínico</div>${sm?`<div class="small muted" style="margin-top:.15rem">Atualizado em ${fmtFull(sm.data.updated||today())}</div>`:""}</div>
+      ${sm?`<button class="btn sm" style="background:var(--lime);border-color:var(--lime)" onclick="doctorView()">${ic("expand")} Mostrar ao médico</button>`:""}</div>
+    ${sm ? `<div class="sumsec"><b>${esc(sm.data.sections?.[0]?.title||"")}</b>${esc(sm.data.sections?.[0]?.text||"")}</div>
+      <button class="btn sm" style="margin-top:.8rem" onclick="summarySheet()">Ver resumo completo</button>`
+      : `<p class="muted" style="margin:.6rem 0 0">O resumo será preenchido a partir dos documentos.</p>`}
+  </div>`;
+  // Perguntas
+  html += `<div class="card"><div class="sec-title" style="margin:0 0 .2rem">Perguntas sugeridas para a próxima consulta</div>
+    ${qs ? `<div class="small muted" style="margin-bottom:.7rem">${esc(qs.data.for||"")}</div>
+      ${(qs.data.items||[]).map(it=>`<div class="qitem"><div class="q">${esc(it.q)}</div>${it.why?`<div class="why">${esc(it.why)}</div>`:""}</div>`).join("")}
+      <p class="small muted" style="margin:.8rem 0 0">Sugestões para ajudar na conversa. Não substituem a orientação da equipe.</p>`
+      : `<p class="muted" style="margin:.3rem 0 0">A lista aparece aqui quando houver uma consulta próxima e documentos novos.</p>`}
+    ${byKind("questions").length>1?`<button class="btn sm" style="margin-top:.7rem" onclick="oldQuestions()">Listas anteriores</button>`:""}
+  </div>`;
+  // Linha do tempo
+  html += `<div class="row" style="justify-content:space-between;margin:1.3rem .1rem .2rem"><span class="sec-title" style="margin:0">Exames e documentos</span>
+    <button class="btn sm" onclick="addDocSheet()">${ic("upload")} Adicionar</button></div>
+    <div class="searchbox">${ic("search")}<input id="prSearch" placeholder="Buscar: tomografia, biópsia, hemoglobina…" value="${esc(PR.q)}" oninput="PR.q=this.value;renderTimeline()"></div>
+    <div class="chips" style="margin-top:.6rem">${[["","Todos"],...Object.entries(RTYPES).map(([k,v])=>[k,v[0]])].map(([k,l])=>`<button class="chip ${PR.type===k?"on":""}" onclick="PR.type='${k}';render()">${l}</button>`).join("")}</div>
+    <div id="timeline"></div>`;
+  main.innerHTML = html;
+  renderTimeline();
+}
+function recMatches(r){
+  if(PR.type && r.data.type!==PR.type) return false;
+  const q = PR.q.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  if(!q) return true;
+  const hay = [r.data.title, r.data.summary, (RTYPES[r.data.type]||[""])[0], fmtFull(r.data.date)].join(" ").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  return q.split(/\s+/).every(w=>hay.includes(w));
+}
+function renderTimeline(){
+  const el = $("#timeline"); if(!el) return;
+  const recs = byKind("record").filter(recMatches).sort((a,b)=>(b.data.date||"").localeCompare(a.data.date||""));
+  if(!recs.length){ el.innerHTML = `<div class="card"><p class="muted" style="margin:0">${PR.q||PR.type?"Nada encontrado com esse filtro.":"Nenhum documento ainda."}</p></div>`; return; }
+  let html = "", lastM = "";
+  recs.forEach((r,i)=>{
+    const d = r.data, m = (d.date||"").slice(0,7);
+    if(m!==lastM){ if(lastM) html += `</div>`; const dd=parseYmd(d.date); html += `<div class="monthhead">${MESES_LONG[dd.getMonth()]} de ${dd.getFullYear()}</div><div class="card" style="margin-top:.3rem">`; lastM=m; }
+    const t = RTYPES[d.type]||RTYPES.outro, open = PR.open[r.id];
+    html += `<div class="rec" onclick="PR.open['${r.id}']=!PR.open['${r.id}'];renderTimeline()">
+      <div class="rh"><span class="rico">${ic(t[1])}</span><span style="flex:1"><div class="rt">${esc(d.title)}</div><div class="rd">${fmtFull(d.date)} · ${t[0]}${d.pending?' · <span style="color:var(--amber)">aguardando resumo</span>':""}</div></span></div>
+      ${d.summary?`<div class="rs ${open?"":"clamp"}">${esc(d.summary)}</div>`:""}
+      ${(d.files||[]).length?`<div class="files">${d.files.map((f,j)=>`<button class="btn sm" onclick="event.stopPropagation();openFile('${esc(f.path)}')">${ic("file")} ${esc(f.name||"Documento "+(j+1))}</button>`).join("")}</div>`:""}
+      ${open?`<div class="files"><button class="btn sm" onclick="event.stopPropagation();editRecord('${r.id}')">${ic("pen")} Editar</button></div>`:""}
+    </div>`;
+  });
+  html += `</div>`;
+  el.innerHTML = html;
+}
+async function filesCall(body){
+  const r = await fetch(CONFIG.filesFn, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ pin:S.pin, ...body }) });
+  return r.json().catch(()=>({error:"rede"}));
+}
+async function openFile(path){
+  if(DEMO){ toast("No modo demonstração não há arquivos"); return; }
+  const w = window.open("about:blank", "_blank");
+  try{ const r = await filesCall({ action:"url", path });
+    if(r.url){ if(w) w.location = r.url; else location.href = r.url; } else { if(w) w.close(); toast("Não consegui abrir o arquivo."); } }
+  catch(e){ if(w) w.close(); toast("Sem internet para abrir o arquivo."); }
+}
+function summarySheet(){
+  const sm = summaryItem(); if(!sm) return; const d = sm.data;
+  openSheet(`<h2>${ic("folder")} Resumo clínico</h2>
+    <p class="small muted">${esc(d.basis||"")}</p>
+    ${(d.sections||[]).map(s=>`<div class="card" style="margin:.6rem 0"><div class="sec-title" style="margin:0 0 .3rem">${esc(s.title)}</div>${esc(s.text)}</div>`).join("")}
+    <button class="btn block" style="background:var(--lime);border-color:var(--lime)" onclick="closeSheet();doctorView()">${ic("expand")} Mostrar ao médico</button>`, null, "Fechar");
+}
+function doctorView(){
+  const sm = summaryItem(); const d = sm ? sm.data : {};
+  const ms = meds().filter(m=>m.data.type!=="rotina");
+  const byName = {}; ms.forEach(m=>{ (byName[m.data.name] ||= {detail:m.data.detail, times:[]}).times.push(m.data.time); });
+  const diary = byKind("diary").filter(e=>!e.data.exemplo).sort((a,b)=>(b.data.date+b.data.time).localeCompare(a.data.date+a.data.time));
+  const last = k => { const e = diary.find(x=>x.data[k]); return e ? {v:e.data, date:e.data.date} : null; };
+  const w = last("weight"), g = last("gluc"), bp = last("bpS"), tp = last("temp");
+  const vit = [w&&`Peso ${String(w.v.weight).replace(".",",")} kg (${fmtShort(w.date)})`, g&&`Glicose ${g.v.gluc} mg/dL${g.v.glucWhen?" "+g.v.glucWhen.toLowerCase():""} (${fmtShort(g.date)})`, bp&&`PA ${bp.v.bpS}/${bp.v.bpD} (${fmtShort(bp.date)})`, tp&&`Temp. ${String(tp.v.temp).replace(".",",")} °C (${fmtShort(tp.date)})`].filter(Boolean);
+  const recs = byKind("record").sort((a,b)=>(b.data.date||"").localeCompare(a.data.date||"")).slice(0,5);
+  const el = document.createElement("div"); el.className="doctor-view"; el.id="doctorView";
+  el.innerHTML = `<button class="btn sm close" onclick="document.getElementById('doctorView').remove()">Fechar</button>
+    <h1>${esc(d.name||CONFIG.paciente)}</h1>
+    <div class="muted">${d.birth?`${fmtFull(d.birth)} (${ageOf(d.birth)} anos)`:""}${d.insurer?` · ${esc(d.insurer)}${d.insurerId?" "+esc(d.insurerId):""}`:""}${d.hospitalId?` · ${esc(d.hospitalId)}`:""}</div>
+    ${(d.sections||[]).map(s=>`<div class="dv-sec"><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></div>`).join("")}
+    <div class="dv-sec"><h3>Remédios em uso (lista da família)</h3><p>${Object.entries(byName).map(([n,v])=>`<b>${esc(n)}</b> ${v.times.join(", ")}${v.detail?` · ${esc(v.detail)}`:""}`).join("<br>")||"—"}</p></div>
+    ${vit.length?`<div class="dv-sec"><h3>Últimos sinais registrados pela família</h3><p>${vit.join("<br>")}</p></div>`:""}
+    ${recs.length?`<div class="dv-sec"><h3>Exames mais recentes</h3><p>${recs.map(r=>`<b>${fmtShort(r.data.date)}</b> ${esc(r.data.title)}`).join("<br>")}</p></div>`:""}
+    <p class="small muted" style="margin-top:1.5rem">Resumo organizado pela família no Dito's Health. Atualizado em ${d.updated?fmtFull(d.updated):"—"}.</p>`;
+  document.body.appendChild(el);
+}
+function oldQuestions(){
+  const all = byKind("questions").sort((a,b)=>(b.data.created||"").localeCompare(a.data.created||""));
+  openSheet(`<h2>Listas anteriores</h2>${all.map(q=>`<div class="card"><div class="sec-title" style="margin:0 0 .4rem">${esc(q.data.for||"")}${q.data.active!==false?" (atual)":""}</div>
+    ${(q.data.items||[]).map(it=>`<div class="qitem"><div class="q">${esc(it.q)}</div>${it.why?`<div class="why">${esc(it.why)}</div>`:""}</div>`).join("")}</div>`).join("")}`, null, "Fechar");
+}
+function recordForm(d){
+  return `<label class="f">O que é</label><input class="in" id="rT" value="${esc(d.title||"")}" placeholder="Ex.: Tomografia do tórax">
+    <div class="two"><div><label class="f">Data do exame</label><input class="in" type="date" id="rD" value="${esc(d.date||today())}"></div>
+    <div><label class="f">Tipo</label><select class="in" id="rY">${Object.entries(RTYPES).map(([k,v])=>`<option value="${k}" ${d.type===k?"selected":""}>${v[0]}</option>`).join("")}</select></div></div>
+    <label class="f">Observação (opcional)</label><textarea class="in" id="rS" placeholder="Ex.: pedido pela oncologia, resultado ainda não explicado">${esc(d.summary||"")}</textarea>`;
+}
+function addDocSheet(){
+  if(DEMO){ toast("No modo demonstração não dá para enviar arquivos"); return; }
+  openSheet(`<h2>${ic("upload")} Adicionar documento</h2>
+    <p class="small muted">Laudo em PDF ou foto do papel. O arquivo fica guardado com acesso só pelo PIN da família.</p>
+    ${recordForm({type:"imagem"})}
+    <label class="f">Arquivo</label><input class="in" type="file" id="rF" accept="application/pdf,image/*" multiple>
+    <p class="small muted" style="margin-top:.5rem">O resumo em linguagem simples é feito depois, na próxima atualização do prontuário.</p>`,
+    async ()=>{
+      const files = [...($("#rF").files||[])];
+      const title = $("#rT").value.trim(); if(!title){ toast("Escreva o que é o documento"); return false; }
+      if(!files.length){ toast("Escolha o arquivo"); return false; }
+      const up = [];
+      for(const f of files){
+        if(f.size > 20*1024*1024){ toast(`${f.name} passa de 20 MB`); return false; }
+        const r = await filesCall({ action:"upload", name:f.name });
+        if(!r.signedUrl){ toast("Não consegui enviar o arquivo."); return false; }
+        const fd = new FormData(); fd.append("cacheControl","3600"); fd.append("", f);
+        const put = await fetch(r.signedUrl, { method:"PUT", headers:{ "x-upsert":"false" }, body: fd });
+        if(!put.ok){ toast("Falha no envio. Tente de novo."); return false; }
+        up.push({ path:r.path, name: f.name.replace(/\.[^.]+$/,"").slice(0,40) || "Documento" });
+      }
+      await save("record", { date:$("#rD").value, type:$("#rY").value, title, summary:$("#rS").value.trim(), files:up, pending:true, source:"família" });
+    });
+}
+function editRecord(id){
+  const r = S.items.find(i=>i.id===id); if(!r) return; const d = r.data;
+  openSheet(`<h2>Editar documento</h2>${recordForm(d)}
+    <button class="btn red block" style="margin-top:1rem" onclick="if(confirm('Apagar este registro da linha do tempo?')){closeSheet();del('${id}')}">Apagar registro</button>`,
+    async ()=>{ const title=$("#rT").value.trim(); if(!title){ toast("Escreva o que é"); return false; }
+      await save("record", {...d, title, date:$("#rD").value, type:$("#rY").value, summary:$("#rS").value.trim()}, id); });
 }
 
 /* ---------- MAIS ---------- */
