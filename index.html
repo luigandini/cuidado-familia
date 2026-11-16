@@ -373,11 +373,71 @@ async function save(kind, data, id){
   if(i>=0) S.items[i]=r.item; else S.items.push(r.item);
   render(); return r.item;
 }
-async function del(id){
+async function del(id, opts={}){
+  const it = S.items.find(x=>x.id===id);
+  const keep = it && ["med","event","diary","record","note"].includes(it.kind);
+  let trashId = null;
+  if(keep){ // guarda uma cópia na lixeira (30 dias) antes de apagar
+    const r0 = await api.save(S.pin, null, "trash", { orig_kind: it.kind, orig_id: it.id, data: it.data, orig_by: it.updated_by||"", deleted_at: new Date().toISOString(), by: S.me }, S.me);
+    if(r0.error || !r0.item){ toast("Não apagou. Verifique a internet."); return; }
+    S.items.push(r0.item); trashId = r0.item.id;
+  }
   const r = await api.del(S.pin, id);
   if(r.error){ toast("Não apagou. Verifique a internet."); return; }
   S.items = S.items.filter(x=>x.id!==id); render();
+  if(trashId && !opts.silent) toastUndo(`${KIND_LABEL[it.kind]||"Item"} apagado`, ()=>restoreTrash(trashId));
 }
+const KIND_LABEL = { med:"Remédio", event:"Compromisso", diary:"Registro do diário", record:"Documento", note:"Recado" };
+async function restoreTrash(trashId){
+  const t = S.items.find(x=>x.id===trashId); if(!t) return;
+  const d = t.data;
+  const r = await api.save(S.pin, d.orig_id, d.orig_kind, d.data, d.orig_by || S.me);
+  if(r.error || !r.item){ toast("Não consegui restaurar. Tente de novo."); return; }
+  await api.del(S.pin, trashId);
+  S.items = S.items.filter(x=>x.id!==trashId && x.id!==r.item.id); S.items.push(r.item);
+  render(); toast(`${KIND_LABEL[d.orig_kind]||"Item"} restaurado`);
+}
+function toastUndo(msg, onUndo){
+  document.querySelectorAll(".toast").forEach(t=>t.remove());
+  const t = document.createElement("div"); t.className="toast"; t.style.cssText+="display:flex;align-items:center;gap:.9rem;padding:.55rem .6rem .55rem 1.1rem";
+  t.innerHTML = `<span>${esc(msg)}</span><button style="background:var(--lime);color:var(--ink);border:0;border-radius:999px;font-weight:800;padding:.45rem .9rem;cursor:pointer">Desfazer</button>`;
+  t.querySelector("button").onclick = ()=>{ t.remove(); onUndo(); };
+  document.body.appendChild(t); setTimeout(()=>t.remove(), 9000);
+}
+function askConfirm(title, text, okLabel="Apagar", danger=true){
+  return new Promise(res=>{
+    const bg = document.createElement("div"); bg.className="modal-bg"; bg.style.zIndex="100";
+    bg.innerHTML = `<div class="modal" role="alertdialog" aria-modal="true"><div class="mico" style="background:${danger?"var(--red2)":"var(--lime)"};color:${danger?"var(--red)":"var(--ink)"}">${ic(danger?"alert":"help")}</div>
+      <h2>${esc(title)}</h2>${text?`<p>${esc(text)}</p>`:""}
+      <button class="btn block" data-ok style="min-height:3.2rem;${danger?"background:var(--red);border-color:var(--red);color:#fff":"background:var(--ink);border-color:var(--ink);color:#fff"}">${esc(okLabel)}</button>
+      <button class="btn block" data-no style="margin-top:.5rem;border:0;color:var(--muted)">Cancelar</button></div>`;
+    const done = v=>{ bg.remove(); res(v); };
+    bg.querySelector("[data-ok]").onclick = ()=>done(true);
+    bg.querySelector("[data-no]").onclick = ()=>done(false);
+    bg.addEventListener("click", e=>{ if(e.target===bg) done(false); });
+    document.body.appendChild(bg);
+  });
+}
+async function confirmDel(id){
+  const it = S.items.find(x=>x.id===id); if(!it) return;
+  const name = it.kind==="med" ? `${it.data.name} (${it.data.time})` : it.kind==="event" ? `${it.data.title} (${fmtShort(it.data.date)})` : it.kind==="record" ? it.data.title : "";
+  const ok = await askConfirm(`Apagar ${(KIND_LABEL[it.kind]||"item").toLowerCase()}?`, `${name?name+". ":""}Fica 30 dias em Mais → Itens apagados, e dá para desfazer logo em seguida.`);
+  if(!ok) return;
+  closeSheet(); await del(id);
+  if(it.kind==="note"){ notes(); }
+}
+function trashSheet(){
+  const lim = Date.now()-30*864e5;
+  const all = byKind("trash").sort((a,b)=>(b.data.deleted_at||"").localeCompare(a.data.deleted_at||""));
+  all.filter(t=>new Date(t.data.deleted_at).getTime()<lim).forEach(t=>api.del(S.pin,t.id)); // limpeza após 30 dias
+  const list = all.filter(t=>new Date(t.data.deleted_at).getTime()>=lim);
+  const label = t=>{ const d=t.data.data||{}; return d.name?`${d.name} · ${d.time||""}`: d.title?`${d.title}${d.date?" · "+fmtShort(d.date):""}`: d.text?d.text.slice(0,60): d.date?`Diário de ${fmtShort(d.date)}`:"Item"; };
+  openSheet(`<h2>${ic("refresh")} Itens apagados</h2><p class="small muted">Ficam guardados por 30 dias. Toque em Restaurar para trazer de volta.</p>
+    <div class="card">${list.length?list.map(t=>`<div class="entry"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:.6rem">
+      <span style="flex:1"><b>${esc(KIND_LABEL[t.data.orig_kind]||"Item")}</b><br>${esc(label(t))}<br><span class="small muted">Apagado por ${esc(t.data.by||"alguém")} ${agoTxt(t.data.deleted_at)}</span></span>
+      <button class="btn sm" onclick="restoreTrash('${t.id}').then(()=>{closeSheet();trashSheet()})">Restaurar</button></div></div>`).join(""):'<p class="muted" style="margin:0">Nada apagado nos últimos 30 dias.</p>'}</div>`, null, "Fechar");
+}
+
 async function seed(){ /* dados iniciais carregados direto no banco */ }
 
 /* ================= TELAS ================= */
@@ -539,7 +599,7 @@ async function toggleDose(medId){
   const d = S.day, dose = doseFor(d, medId);
   const med = S.items.find(i=>i.id===medId);
   if(dose){
-    if(!confirm(`Desmarcar ${med.data.name}?\nFoi marcado por ${dose.data.by||"alguém"} às ${fmtTime(dose.data.at)}.`)) return;
+    if(!(await askConfirm(`Desmarcar ${med.data.name}?`, `Foi marcado por ${dose.data.by||"alguém"} às ${fmtTime(dose.data.at)}.`, "Desmarcar", false))) return;
     return del(dose.id);
   }
   await save("dose", {date:d, med:medId, by:S.me, at:new Date().toISOString(), obs:""});
@@ -602,7 +662,7 @@ function editEvent(id){
     <label class="f">Local</label><input class="in" id="eL" value="${esc(d.place)}" placeholder="Ex.: Vergueiro">
     <label class="f">Tipo</label><select class="in" id="eY">${Object.entries(TIPOS).map(([k,v])=>`<option value="${k}" ${d.type===k?"selected":""}>${v}</option>`).join("")}</select>
     <label class="f">Observações</label><textarea class="in" id="eO" placeholder="Levar exames, jejum, documentos…">${esc(d.obs)}</textarea>
-    ${id?`<button class="btn red block" style="margin-top:1rem" onclick="if(confirm('Apagar este compromisso?')){closeSheet();del('${id}')}">Apagar compromisso</button>`:""}`,
+    ${id?`<button class="btn red block" style="margin-top:1rem" onclick="confirmDel('${id}')">Apagar compromisso</button>`:""}`,
     async ()=>{
       const nd = {...d, title:$("#eT").value.trim(), date:$("#eD").value, time:$("#eH").value, place:$("#eL").value.trim(), type:$("#eY").value, obs:$("#eO").value.trim()};
       if(!nd.title||!nd.date){ toast("Preencha o que é e a data"); return false; }
@@ -659,8 +719,8 @@ function renderDiario(main){
   main.innerHTML = html;
 }
 async function clearExamples(){
-  if(!confirm("Apagar todos os registros de exemplo?")) return;
-  for(const e of S.items.filter(i=>(i.kind==="diary"||i.kind==="note") && (i.data.exemplo || /\(exemplo/.test(i.data.text||"")))) await del(e.id);
+  if(!(await askConfirm("Apagar os registros de exemplo?", "Eles ficam 30 dias em Itens apagados."))) return;
+  for(const e of S.items.filter(i=>(i.kind==="diary"||i.kind==="note") && (i.data.exemplo || /\(exemplo/.test(i.data.text||"")))) await del(e.id, {silent:true});
   toast("Exemplos apagados");
 }
 let DF = {};
@@ -707,7 +767,7 @@ function editDiary(id){
     <div class="two"><div><label class="f">Dia</label><input class="in" type="date" id="d_date" value="${esc(DF.date)}"></div>
     <div><label class="f">Hora</label><input class="in" type="time" id="d_time" value="${esc(DF.time)}"></div></div>
     <div id="diaryFields">${diaryFields()}</div>
-    ${id?`<button class="btn red block" style="margin-top:1rem" onclick="if(confirm('Apagar este registro?')){closeSheet();del('${id}')}">Apagar registro</button>`:""}`,
+    ${id?`<button class="btn red block" style="margin-top:1rem" onclick="confirmDel('${id}')">Apagar registro</button>`:""}`,
     async ()=>{
       ["temp","gluc","bpS","bpD","weight","obs","date","time"].forEach(k=>{ const el=$("#d_"+k); if(el) DF[k]=el.value.trim(); });
       if(DF.temp) DF.temp = DF.temp.replace(",",".");
@@ -919,7 +979,7 @@ function addDocSheet(){
 function editRecord(id){
   const r = S.items.find(i=>i.id===id); if(!r) return; const d = r.data;
   openSheet(`<h2>Editar documento</h2>${recordForm(d)}
-    <button class="btn red block" style="margin-top:1rem" onclick="if(confirm('Apagar este registro da linha do tempo?')){closeSheet();del('${id}')}">Apagar registro</button>`,
+    <button class="btn red block" style="margin-top:1rem" onclick="confirmDel('${id}')">Apagar registro</button>`,
     async ()=>{ const title=$("#rT").value.trim(); if(!title){ toast("Escreva o que é"); return false; }
       await save("record", {...d, title, date:$("#rD").value, type:$("#rY").value, summary:$("#rS").value.trim()}, id); });
 }
@@ -938,10 +998,11 @@ function renderMais(main){
       <div class="row">${[1,2,3].map(n=>`<button class="btn ${font===n?"primary":""}" style="flex:1;font-size:${.75+n*.2}rem" onclick="setFont(${n})" aria-label="Letra ${["","normal","grande","maior"][n]}">A</button>`).join("")}</div>
     </div>
     <div class="card">
+      <button class="list-btn" onclick="trashSheet()"><span class="ico">${ic("refresh")}</span><span class="grow">Itens apagados</span>${byKind("trash").length?`<span class="pill">${byKind("trash").length}</span>`:`<span class="chev">${ic("right")}</span>`}</button>
       <button class="list-btn" onclick="askWho()"><span class="ico">${ic("user")}</span><span class="grow">Trocar quem está usando</span><span class="small muted">${esc(S.me)}</span></button>
       <button class="list-btn" onclick="changePin()"><span class="ico">${ic("key")}</span><span class="grow">Trocar PIN da família</span><span class="chev">${ic("right")}</span></button>
       <button class="list-btn" onclick="refresh()"><span class="ico">${ic("refresh")}</span><span class="grow">Atualizar agora</span><span class="chev">${ic("right")}</span></button>
-      <button class="list-btn" onclick="if(confirm('Sair deste aparelho?')){LS.set('cj_pin','');S.pin='';render()}"><span class="ico">${ic("logout")}</span><span class="grow">Sair deste aparelho</span><span class="chev">${ic("right")}</span></button>
+      <button class="list-btn" onclick="askConfirm('Sair deste aparelho?','Para entrar de novo será preciso digitar o PIN.','Sair',false).then(ok=>{ if(ok){ LS.set('cj_pin',''); S.pin=''; render(); } })"><span class="ico">${ic("logout")}</span><span class="grow">Sair deste aparelho</span><span class="chev">${ic("right")}</span></button>
     </div>
     <p class="small muted" style="text-align:center;margin:1.2rem 0">Dito's Health organiza o cuidado da família.<br>Não substitui orientação médica.</p>`;
 }
@@ -963,7 +1024,7 @@ function editMed(id){
     <label class="f">Tipo</label><select class="in" id="mY"><option value="remedio" ${d.type!=="rotina"?"selected":""}>Remédio</option><option value="rotina" ${d.type==="rotina"?"selected":""}>Refeição ou rotina</option></select>
     <label class="f"><input type="checkbox" id="mA" ${d.active!==false?"checked":""} style="width:1.4rem;height:1.4rem;vertical-align:middle"> Em uso (desmarque para suspender)</label>
     <p class="small muted">Para o mesmo remédio em dois horários, cadastre duas vezes.</p>
-    ${id?`<button class="btn red block" onclick="if(confirm('Apagar este remédio da lista?')){closeSheet();del('${id}')}">Apagar</button>`:""}`,
+    ${id?`<button class="btn red block" onclick="confirmDel('${id}')">Apagar</button>`:""}`,
     async ()=>{
       const nd = {...d, name:$("#mN").value.trim(), time:$("#mT").value, detail:$("#mD").value.trim(), type:$("#mY").value, active:$("#mA").checked};
       if(!nd.name||!nd.time){ toast("Preencha nome e horário"); return false; }
@@ -977,7 +1038,7 @@ function notes(){
     <textarea class="in" id="nT" placeholder="Escreva um recado para todos"></textarea>
     <button class="btn primary block" style="margin-top:.5rem" onclick="addNote()">Enviar recado</button>
     <div class="card">${list.length?list.map(n=>`<div class="entry"><div class="row" style="justify-content:space-between"><b>${esc(n.updated_by||"")}</b><span class="small muted">${n.data.at?fmtShort(ymd(new Date(n.data.at)))+" "+fmtTime(n.data.at):""}</span></div>
-      <div>${esc(n.data.text)}</div><button class="btn sm red" style="margin-top:.4rem" onclick="if(confirm('Apagar recado?')){del('${n.id}').then(()=>{closeSheet();notes()})}">Apagar</button></div>`).join(""):'<p class="muted">Nenhum recado.</p>'}</div>`, null, "Fechar");
+      <div>${esc(n.data.text)}</div><button class="btn sm red" style="margin-top:.4rem" onclick="confirmDel('${n.id}')">Apagar</button></div>`).join(""):'<p class="muted">Nenhum recado.</p>'}</div>`, null, "Fechar");
 }
 async function addNote(){ const t = $("#nT").value.trim(); if(!t) return; await save("note",{text:t,at:new Date().toISOString()}); closeSheet(); notes(); }
 function sinais(){
