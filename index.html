@@ -163,6 +163,27 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:3px solid var(--lime);b
 .list-btn .grow{flex:1}
 .list-btn .chev{color:var(--faint)}
 .hide{display:none!important}
+.top-actions{display:flex;align-items:center;gap:.45rem}
+.bellbtn{position:relative;width:2.4rem;height:2.4rem;border-radius:999px;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);padding:0}
+.bellbtn svg.i{width:1.2rem;height:1.2rem}
+.bellbtn .count{position:absolute;top:-.3rem;right:-.3rem;min-width:1.15rem;height:1.15rem;padding:0 .3rem;border-radius:999px;background:#D93025;color:#fff;font-size:.6875rem;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.notice{display:flex;gap:.75rem;align-items:flex-start;width:100%;text-align:left;background:transparent;border:0;border-top:1px solid var(--line);padding:.85rem .1rem;cursor:pointer}
+.notice:first-child{border-top:0}
+.notice .nico{flex:0 0 2.25rem;height:2.25rem;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.notice.unread .nico{background:var(--lime)}
+.notice .nt{font-weight:700;font-size:.95rem}
+.notice .nb{font-size:.875rem;color:var(--ink);margin-top:.1rem}
+.notice .nm{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+.notice.done .nt,.notice.done .nb{color:var(--muted)}
+.notice .udot{width:.6rem;height:.6rem;border-radius:50%;background:#D93025;margin-top:.4rem;flex:0 0 auto}
+.modal-bg{position:fixed;inset:0;z-index:90;background:rgba(21,36,29,.72);display:flex;align-items:center;justify-content:center;padding:1.2rem;animation:fade .2s ease-out;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.modal{background:var(--card);border-radius:28px;max-width:22rem;width:100%;padding:1.6rem 1.3rem 1.2rem;text-align:center;animation:pop .25s ease-out}
+.modal .mico{width:4rem;height:4rem;border-radius:22px;background:var(--lime);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+.modal .mico svg.i{width:2rem;height:2rem}
+.modal h2{font-size:1.4rem;font-weight:800;margin-bottom:.5rem}
+.modal p{color:var(--muted);margin:0 0 1.2rem;font-size:.95rem}
+@keyframes fade{from{opacity:0}to{opacity:1}} @keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.modal-bg,.modal{animation:none}}
 </style>
 </head>
 <body>
@@ -249,7 +270,10 @@ const api = DEMO ? (()=> {
       const a = load() || []; const it = {id:id||uuid(),kind,data,updated_at:new Date().toISOString(),updated_by:who};
       const i = a.findIndex(x=>x.id===it.id); if(i>=0) a[i]=it; else a.push(it); save(a); return {item:it}; },
     async del(pin,id){ if(!check(pin)) return {error:"pin"}; save((load()||[]).filter(x=>x.id!==id)); return {ok:true}; },
-    async setPin(){ return {error:"demo"}; }
+    async setPin(){ return {error:"demo"}; },
+    async notices(){ return {notices: LS.get("cj_demo_notices",[]), read: LS.get("cj_demo_read",[])}; },
+    async noticesRead(pin,who,ids){ LS.set("cj_demo_read",[...new Set([...LS.get("cj_demo_read",[]),...ids])]); return {ok:true}; },
+    async pushPeople(){ return {total:0,people:[]}; }
   };
 })() : (()=> {
   async function rpc(fn, args){
@@ -268,7 +292,9 @@ const api = DEMO ? (()=> {
     setPin:(pin,nw)=>rpc("fam_set_pin",{p_pin:pin,p_new:nw}),
     pushSub:(pin,sub,who)=>rpc("fam_push_subscribe",{p_pin:pin,p_sub:sub,p_who:who}),
     pushUnsub:(pin,ep)=>rpc("fam_push_unsubscribe",{p_pin:pin,p_endpoint:ep}),
-    pushPeople:(pin)=>rpc("fam_push_people",{p_pin:pin})
+    pushPeople:(pin)=>rpc("fam_push_people",{p_pin:pin}),
+    notices:(pin,who)=>rpc("fam_notices_list",{p_pin:pin,p_who:who}),
+    noticesRead:(pin,who,ids)=>rpc("fam_notices_read",{p_pin:pin,p_who:who,p_ids:ids})
   };
 })();
 
@@ -281,8 +307,10 @@ const S = {
   items: [],
   loaded: false,
   online: true,
-  showPast: false
+  showPast: false,
+  notices: [], readSet: new Set()
 };
+{ const t = new URLSearchParams(location.search).get("tab"); if(["hoje","agenda","diario","painel","mais"].includes(t)) S.tab = t; }
 const font = LS.get("cj_font", 1);
 document.documentElement.classList.toggle("f2", font===2);
 document.documentElement.classList.toggle("f3", font===3);
@@ -298,6 +326,7 @@ async function refresh(silent){
     const r = await api.list(S.pin);
     if(r.error){ if(r.error==="pin"||r.error==="bloqueado"){ S.pin=""; LS.set("cj_pin",""); render(); toast(r.error==="bloqueado"?"Muitas tentativas. Aguarde 15 minutos.":"PIN mudou. Digite de novo."); } return; }
     S.items = r.items; S.online = true;
+    loadNotices();
     if(!S.loaded){ S.loaded = true; if(S.items.length===0) await seed(); }
     LS.set("cj_cache", S.items);
   }catch(e){ S.online=false; if(!S.loaded){ S.items = LS.get("cj_cache", []); S.loaded = true; } if(!silent) toast("Sem internet. Mostrando a última cópia."); }
@@ -329,7 +358,8 @@ function render(){
     ${!S.online?'<div class="demo">SEM INTERNET · mostrando a última cópia</div>':""}
     <header class="top"><div class="wrap">
       <div><div class="brand"><i></i>Dito's Health</div><h1>${esc(titles[S.tab])}</h1><div class="sub">${esc(CONFIG.paciente)}, ${fmtDay(today())}</div></div>
-      <button class="who" onclick="askWho()" aria-label="Trocar quem está usando">${ic("user")} ${esc(S.me)}</button>
+      <div class="top-actions"><button class="bellbtn" onclick="inbox()" aria-label="Avisos${unreadCount()?": "+unreadCount()+" não lidos":""}">${ic("bell")}${unreadCount()?`<span class="count">${unreadCount()>9?"9+":unreadCount()}</span>`:""}</button>
+      <button class="who" onclick="askWho()" aria-label="Trocar quem está usando">${ic("user")} ${esc(S.me)}</button></div>
     </div></header>
     <main class="wrap" id="main"></main>
     <nav class="tabs">
@@ -337,6 +367,7 @@ function render(){
         .map(([k,n,l])=>`<button class="${S.tab===k?"on":""}" onclick="go('${k}')" aria-current="${S.tab===k?"page":"false"}">${ic(n)}${l}</button>`).join("")}
     </nav>`;
   ({hoje:renderHoje,agenda:renderAgenda,diario:renderDiario,painel:renderPainel,mais:renderMais})[S.tab]($("#main"));
+  updateBadge();
 }
 function go(t){ S.tab=t; if(t==="hoje") S.day=today(); render(); window.scrollTo(0,0); }
 
@@ -363,7 +394,7 @@ async function pinKey(k){
     try{
       const r = await api.list(pinTyped);
       if(r.error){ toast(r.error==="bloqueado"?"Muitas tentativas. Aguarde 15 minutos.":"PIN errado. Tente de novo."); pinTyped=""; return render(); }
-      S.pin = pinTyped; LS.set("cj_pin", S.pin); pinTyped=""; S.items=r.items; S.loaded=true;
+      S.pin = pinTyped; LS.set("cj_pin", S.pin); pinTyped=""; S.items=r.items; S.loaded=true; loadNotices();
       if(S.items.length===0) await seed();
       render();
     }catch(e){ toast("Sem internet. Tente de novo."); }
@@ -393,7 +424,7 @@ function setMe(n){
   n = (n||"").trim(); if(!n){ toast("Escreva seu nome"); return; }
   S.me = n; LS.set("cj_me", n);
   const p = LS.get("cj_people", []); if(!p.includes(n)){ p.push(n); LS.set("cj_people", p); }
-  render();
+  render(); loadNotices(); setTimeout(maybeAskPush, 2000);
 }
 function askWho(){ S.me=""; LS.set("cj_me",""); render(); }
 
@@ -478,6 +509,7 @@ async function toggleDose(medId){
     return del(dose.id);
   }
   await save("dose", {date:d, med:medId, by:S.me, at:new Date().toISOString(), obs:""});
+  updateBadge();
 }
 async function giveSlot(time){
   const t = today();
@@ -762,6 +794,7 @@ function editMed(id){
     });
 }
 function notes(){
+  markRead(byKind("note").filter(n=>!n.data.sinais && n.updated_by!==S.me).map(n=>n.id));
   const list = byKind("note").filter(n=>!n.data.sinais).sort((a,b)=>(b.data.at||"").localeCompare(a.data.at||""));
   openSheet(`<h2>Recados da família</h2>
     <textarea class="in" id="nT" placeholder="Escreva um recado para todos"></textarea>
@@ -841,6 +874,78 @@ function changePin(){
       const r = await api.setPin(S.pin, n); if(r.ok){ S.pin=n; LS.set("cj_pin",n); toast("PIN trocado"); } else { toast("Não trocou"); return false; } });
 }
 
+/* ---------- Sino: avisos e recados ---------- */
+async function loadNotices(){
+  if(!S.pin || !S.me) return;
+  try{ const r = await api.notices(S.pin, S.me); if(r.error) return;
+    S.notices = r.notices||[]; S.readSet = new Set(r.read||[]); updateBadge(); if(!$("#sheet")) render(); else if($("#inboxList")) $("#inboxList").innerHTML = inboxHtml(); }catch(e){}
+}
+function medNoticeStatus(n){
+  const ref = n.ref||{}; const ids = ref.meds||[]; if(!ids.length) return null;
+  const ds = ids.map(id=>doseFor(ref.date,id)); if(ds.some(d=>!d)) return null;
+  const last = ds.sort((a,b)=>(b.data.at||"").localeCompare(a.data.at||""))[0];
+  return `Resolvido: dado por ${last.data.by||"alguém"} às ${fmtTime(last.data.at)}`;
+}
+function inboxEntries(){
+  const out = [];
+  (S.notices||[]).forEach(n=>{ const done = n.kind==="med" ? medNoticeStatus(n) : null;
+    out.push({ id:n.id, kind:n.kind, at:n.at, title:n.title, body:n.body, done, unread: !done && !S.readSet.has(n.id) }); });
+  const since = Date.now()-7*864e5;
+  byKind("note").filter(x=>!x.data.sinais && x.data.at && new Date(x.data.at).getTime()>since && x.updated_by!==S.me && !/\(exemplo/.test(x.data.text||""))
+    .forEach(x=>out.push({ id:x.id, kind:"note", at:x.data.at, title:`Recado de ${x.updated_by||"alguém"}`, body:x.data.text, done:null, unread: !S.readSet.has(x.id) }));
+  return out.sort((a,b)=>(b.at||"").localeCompare(a.at||""));
+}
+function unreadCount(){ try{ return inboxEntries().filter(e=>e.unread).length; }catch(e){ return 0; } }
+function updateBadge(){ const n = unreadCount(); try{ if(navigator.setAppBadge){ n?navigator.setAppBadge(n):navigator.clearAppBadge(); } }catch(e){} }
+function agoTxt(iso){ const m = Math.round((Date.now()-new Date(iso).getTime())/60000); if(m<1) return "agora"; if(m<60) return `há ${m} min`; const h=Math.round(m/60); if(h<24) return `há ${h} h`; const d=Math.round(h/24); return d===1?"ontem":`há ${d} dias`; }
+function inboxHtml(){
+  const list = inboxEntries();
+  if(!list.length) return `<p class="muted" style="text-align:center;margin:1rem 0">Nenhum aviso por enquanto.</p>`;
+  const IC = {med:"pill", event:"calendar", note:"chat"};
+  return list.map(e=>`<button class="notice ${e.unread?"unread":""} ${e.done?"done":""}" onclick="openNotice('${e.id}','${e.kind}')">
+    <span class="nico">${ic(IC[e.kind]||"bell")}</span>
+    <span style="flex:1"><div class="nt">${esc(e.title)}</div><div class="nb">${esc(e.body||"")}</div>
+      <div class="nm">${e.done?`<span style="color:var(--green);font-weight:700">${esc(e.done)}</span>`:agoTxt(e.at)}</div></span>
+    ${e.unread?`<span class="udot" aria-label="não lido"></span>`:""}</button>`).join("");
+}
+function inbox(){
+  openSheet(`<div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">${ic("bell")} Avisos</h2>
+      <button class="btn sm" onclick="markAllRead()">Marcar todos como lidos</button></div>
+    <p class="small muted" style="margin:.4rem 0 .6rem">Avisos de remédio somem do contador quando alguém marca a dose.</p>
+    <div class="card" id="inboxList">${inboxHtml()}</div>`, null, "Fechar");
+}
+async function markRead(ids){
+  ids = ids.filter(id=>!S.readSet.has(id)); if(!ids.length) return;
+  ids.forEach(id=>S.readSet.add(id)); updateBadge();
+  try{ await api.noticesRead(S.pin, S.me, ids); }catch(e){}
+}
+async function markAllRead(){ await markRead(inboxEntries().map(e=>e.id)); if($("#inboxList")) $("#inboxList").innerHTML = inboxHtml(); render(); }
+async function openNotice(id, kind){
+  await markRead([id]); closeSheet();
+  if(kind==="med") go("hoje"); else if(kind==="event") go("agenda"); else { render(); notes(); }
+}
+
+/* ---------- Cartão de permissão em destaque ---------- */
+function maybeAskPush(){
+  if(DEMO || !S.pin || !S.me || $("#pushModal") || $("#sheet")) return;
+  const later = LS.get("cj_push_later", 0); if(Date.now() - later < 3*864e5) return;
+  const iosBrowser = isIOS && !isStandalone();
+  if(!iosBrowser){ if(!pushSupported() || PUSH.on || Notification.permission!=="default") return; }
+  const bg = document.createElement("div"); bg.className="modal-bg"; bg.id="pushModal";
+  bg.innerHTML = iosBrowser ? `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="pmT">
+      <div class="mico">${ic("bell")}</div><h2 id="pmT">Instale o app para receber avisos</h2>
+      <p>No iPhone, os avisos da hora do remédio só chegam com o Dito's Health na tela de início.</p>
+      <a class="btn green block" style="background:var(--lime);min-height:3.4rem;text-decoration:none" href="instalar/">${ic("plus")} Ver como instalar</a>
+      <button class="btn block" style="margin-top:.5rem;border:0;color:var(--muted)" onclick="pushLater()">Agora não</button></div>`
+    : `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="pmT">
+      <div class="mico">${ic("bell")}</div><h2 id="pmT">Receber a hora do remédio?</h2>
+      <p>Avisamos neste celular na hora de cada remédio e antes das consultas. No próximo passo, toque em <b>Permitir</b>.</p>
+      <button class="btn green block" style="background:var(--lime);min-height:3.4rem" onclick="document.getElementById('pushModal').remove();enableNotif()">${ic("bell")} Ativar avisos</button>
+      <button class="btn block" style="margin-top:.5rem;border:0;color:var(--muted)" onclick="pushLater()">Agora não</button></div>`;
+  document.body.appendChild(bg);
+}
+function pushLater(){ LS.set("cj_push_later", Date.now()); const m=$("#pushModal"); if(m) m.remove(); }
+
 /* ---------- Sheet ---------- */
 let sheetSave = null;
 function openSheet(html, onSave, closeLabel){
@@ -864,7 +969,7 @@ document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState=
 
 render();
 if(S.pin) refresh();
-if("serviceWorker" in navigator) window.addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").then(()=>pushState()).then(()=>{ if(S.pin&&S.me&&S.loaded) render(); }).catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").then(()=>pushState()).then(()=>{ if(S.pin&&S.me&&S.loaded) render(); setTimeout(maybeAskPush, 2000); }).catch(()=>{}));
 </script>
 </body>
 </html>
