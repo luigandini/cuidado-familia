@@ -172,7 +172,9 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:3px solid var(--lime);b
 const CONFIG = {
   supabaseUrl: "https://lkmviblxbtnznyxmlsiz.supabase.co",
   supabaseKey: "sb_publishable_JEkTbX-8KE8AGSJpnd9XhQ_4ohxSiMp",
-  paciente: "Seu José"
+  paciente: "Seu José",
+  vapidPublic: "BEpUCZRDE4xr_fl5c6Y3Fm8y_ZwsbDGibZ0MuPhO44dpgJn98rYL4Tc6jMwG5wF9hYmeX4EmbOiCjzv4x019V7o",
+  pushFn: "https://lkmviblxbtnznyxmlsiz.supabase.co/functions/v1/dito-push"
 };
 const DEMO = !/^https:\/\//.test(CONFIG.supabaseUrl);
 
@@ -263,7 +265,10 @@ const api = DEMO ? (()=> {
     list:(pin)=>rpc("fam_list",{p_pin:pin}),
     save:(pin,id,kind,data,who)=>rpc("fam_save",{p_pin:pin,p_id:id||null,p_kind:kind,p_data:data,p_who:who}),
     del:(pin,id)=>rpc("fam_delete",{p_pin:pin,p_id:id}),
-    setPin:(pin,nw)=>rpc("fam_set_pin",{p_pin:pin,p_new:nw})
+    setPin:(pin,nw)=>rpc("fam_set_pin",{p_pin:pin,p_new:nw}),
+    pushSub:(pin,sub,who)=>rpc("fam_push_subscribe",{p_pin:pin,p_sub:sub,p_who:who}),
+    pushUnsub:(pin,ep)=>rpc("fam_push_unsubscribe",{p_pin:pin,p_endpoint:ep}),
+    pushPeople:(pin)=>rpc("fam_push_people",{p_pin:pin})
   };
 })();
 
@@ -413,6 +418,9 @@ function renderHoje(main){
   const all = slots.flatMap(s=>s.list).filter(m=>m.data.type!=="rotina");
   const done = all.filter(m=>doseFor(d,m.id)).length;
   let html = "";
+  if(isToday && PUSH.checked && !PUSH.on && !DEMO && !LS.get("cj_push_dismiss",false)){
+    html += `<div class="alert blue" style="align-items:center">${ic("bell")}<span style="flex:1">Receba o aviso da hora do remédio neste celular.</span><button class="btn sm" style="background:var(--lime);border-color:var(--lime)" onclick="event.stopPropagation();enableNotif()">Ativar</button></div>`;
+  }
   if(isToday){
     const ns = nextSlot();
     if(ns){
@@ -544,6 +552,10 @@ function diaryAlerts(d){
   if(parseFloat(String(d.temp).replace(",","."))>=37.8) a.push(["red","Febre em quem faz quimioterapia: ligar para a equipe de oncologia ou ir ao pronto-socorro hoje."]);
   if(d.swallow==="Entalou") a.push(["red","Alimento entalado: se não consegue engolir nem a saliva, ir ao pronto-socorro."]);
   if((d.painSite||[]).includes("Costas") && Number(d.pain)>=7) a.push(["red","Dor forte nas costas: se houver fraqueza ou dormência nas pernas ou dificuldade para urinar, pronto-socorro no mesmo dia."]);
+  const g = Number(d.gluc);
+  if(d.gluc && g<70) a.push(["red","Glicose baixa (abaixo de 70). Siga a orientação da equipe para hipoglicemia. Se estiver confuso, muito sonolento ou não conseguir engolir, pronto-socorro."]);
+  else if(d.gluc && g>=300) a.push(["red","Glicose muito alta (300 ou mais). Avisar a equipe hoje. Com náusea, vômito, sonolência ou respiração rápida, pronto-socorro."]);
+  else if(d.gluc && g>=250) a.push(["amber","Glicose alta (250 ou mais). Avisar a equipe médica."]);
   if(d.bpS && Number(d.bpS)<90) a.push(["amber","Pressão baixa (máxima abaixo de 90). Avisar a equipe médica."]);
   if(d.nausea==="Vomitou") a.push(["amber","Vômito: avisar a equipe se repetir ou se não conseguir tomar os remédios."]);
   return a;
@@ -562,6 +574,7 @@ function renderDiario(main){
     if(d.food) F(`Comeu ${esc(d.food).toLowerCase()}`);
     if(d.swallow) F(`Engolir: ${esc(d.swallow).toLowerCase()}`);
     if(d.temp) F(`${esc(String(d.temp).replace(".",","))} °C`);
+    if(d.gluc) F(`Glicose ${esc(d.gluc)}${d.glucWhen?" ("+esc(d.glucWhen).toLowerCase()+")":""}`, Number(d.gluc)<70||Number(d.gluc)>=250);
     if(d.bpS) F(`PA ${esc(d.bpS)}/${esc(d.bpD)}`);
     if(d.weight) F(`${esc(String(d.weight).replace(".",","))} kg`);
     if(d.bowel) F(`Evacuou: ${esc(d.bowel).toLowerCase()}`);
@@ -596,7 +609,7 @@ function pick(field, val, multi){
   syncDiaryForm();
 }
 function syncDiaryForm(){
-  ["temp","bpS","bpD","weight","obs","date","time"].forEach(k=>{ const el=$("#d_"+k); if(el) DF[k]=el.value; });
+  ["temp","gluc","bpS","bpD","weight","obs","date","time"].forEach(k=>{ const el=$("#d_"+k); if(el) DF[k]=el.value; });
   $("#diaryFields").innerHTML = diaryFields();
 }
 function diaryFields(){
@@ -613,13 +626,16 @@ function diaryFields(){
     <div class="chips">${MOODS.map((m,i)=>`<button type="button" class="chip ${DF.mood===i+1?"on":""}" onclick="DF.mood=DF.mood===${i+1}?0:${i+1};syncDiaryForm()">${m}</button>`).join("")}</div>
     <div class="two"><div><label class="f">Temperatura °C</label><input class="in" id="d_temp" inputmode="decimal" value="${esc(DF.temp)}" placeholder="36,5"></div>
     <div><label class="f">Peso kg</label><input class="in" id="d_weight" inputmode="decimal" value="${esc(DF.weight)}" placeholder="—"></div></div>
+    <label class="f">Glicose (mg/dL)</label>
+    <input class="in" id="d_gluc" inputmode="numeric" value="${esc(DF.gluc)}" placeholder="Ex.: 120">
+    <div style="margin-top:.5rem">${chipRow("glucWhen",["Jejum","Antes de comer","2h após comer","Ao deitar","Outro"])}</div>
     <label class="f">Pressão (máxima / mínima)</label>
     <div class="two"><input class="in" id="d_bpS" inputmode="numeric" value="${esc(DF.bpS)}" placeholder="120"><input class="in" id="d_bpD" inputmode="numeric" value="${esc(DF.bpD)}" placeholder="80"></div>
     <label class="f">Observações</label><textarea class="in" id="d_obs" placeholder="Qualquer coisa diferente que notou">${esc(DF.obs)}</textarea>`;
 }
 function editDiary(id){
   const e = id ? S.items.find(i=>i.id===id) : null;
-  DF = e ? JSON.parse(JSON.stringify(e.data)) : {date:today(),time:nowHM(),pain:"",painSite:[],food:"",swallow:"",nausea:"",bowel:"",sleep:"",mood:0,temp:"",bpS:"",bpD:"",weight:"",obs:""};
+  DF = e ? JSON.parse(JSON.stringify(e.data)) : {date:today(),time:nowHM(),pain:"",painSite:[],food:"",swallow:"",nausea:"",bowel:"",sleep:"",mood:0,temp:"",gluc:"",glucWhen:"",bpS:"",bpD:"",weight:"",obs:""};
   openSheet(`<h2>${id?"Editar registro":"Como ele está?"}</h2>
     <p class="small muted">Preencha só o que souber. Nada é obrigatório.</p>
     <div class="two"><div><label class="f">Dia</label><input class="in" type="date" id="d_date" value="${esc(DF.date)}"></div>
@@ -627,7 +643,7 @@ function editDiary(id){
     <div id="diaryFields">${diaryFields()}</div>
     ${id?`<button class="btn red block" style="margin-top:1rem" onclick="if(confirm('Apagar este registro?')){closeSheet();del('${id}')}">Apagar registro</button>`:""}`,
     async ()=>{
-      ["temp","bpS","bpD","weight","obs","date","time"].forEach(k=>{ const el=$("#d_"+k); if(el) DF[k]=el.value.trim(); });
+      ["temp","gluc","bpS","bpD","weight","obs","date","time"].forEach(k=>{ const el=$("#d_"+k); if(el) DF[k]=el.value.trim(); });
       if(DF.temp) DF.temp = DF.temp.replace(",",".");
       if(DF.weight) DF.weight = DF.weight.replace(",",".");
       const data = {...DF}; delete data.exemplo;
@@ -693,6 +709,8 @@ function renderPainel(main){
     <div class="row small muted" style="margin-top:.8rem;gap:1rem;flex-wrap:wrap"><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;background:var(--lime);display:inline-block"></i>90% ou mais</span><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;background:var(--lime2);border:1.5px solid var(--lime);display:inline-block"></i>60 a 89%</span><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;border:1.5px solid var(--red);display:inline-block"></i>abaixo de 60%</span></div></div>`;
   html += `<div class="card"><div class="sec-title">Dor nos últimos 14 dias</div>${lineChart(painPts,{min:0,max:10,color:"#15241D",unit:""})}</div>`;
   html += `<div class="card"><div class="sec-title">Temperatura (linha vermelha: febre, 37,8 °C)</div>${lineChart(tempPts,{min:35,max:40,color:"#1E5A43",unit:"°",ref:37.8})}</div>`;
+  const gPts = diary.filter(e=>e.data.date>=since14 && e.data.gluc).map(e=>({v:Number(e.data.gluc),l:fmtShort(e.data.date)}));
+  html += `<div class="card"><div class="sec-title">Glicose nos últimos 14 dias (linha vermelha: 70 mg/dL)</div>${gPts.length?lineChart(gPts,{min:40,max:Math.max(300,...gPts.map(p=>p.v))+20,color:"#15241D",unit:"",ref:70}):'<p class="small muted">Registre a glicose no diário para ver a evolução.</p>'}</div>`;
   html += `<div class="card"><div class="sec-title">Peso</div>${wPts.length>=1?lineChart(wPts,{min:Math.min(...wPts.map(p=>p.v))-3,max:Math.max(...wPts.map(p=>p.v))+3,color:"#1E5A43",unit:"kg"}):'<p class="small muted">Registre o peso no diário (ideal 1x por semana, mesma balança).</p>'}</div>`;
   main.innerHTML = html;
 }
@@ -704,7 +722,7 @@ function renderMais(main){
       <button class="list-btn" onclick="medList()"><span class="ico">${ic("pill")}</span><span class="grow">Lista de remédios e horários</span><span class="chev">${ic("right")}</span></button>
       <button class="list-btn" onclick="notes()"><span class="ico">${ic("chat")}</span><span class="grow">Recados da família</span><span class="pill">${byKind("note").filter(n=>!n.data.sinais).length}</span></button>
       <button class="list-btn" onclick="sinais()"><span class="ico">${ic("alert")}</span><span class="grow">Quando ir ao pronto-socorro</span><span class="chev">${ic("right")}</span></button>
-      <button class="list-btn" onclick="enableNotif()"><span class="ico">${ic("bell")}</span><span class="grow">Ativar avisos neste aparelho</span><span class="chev">${ic("right")}</span></button>
+      <button class="list-btn" onclick="pushSheet()"><span class="ico">${ic("bell")}</span><span class="grow">Avisos no celular</span>${PUSH.checked?`<span class="pill" style="${PUSH.on?"background:var(--lime)":""}">${PUSH.on?"Ligado":"Desligado"}</span>`:`<span class="chev">${ic("right")}</span>`}</button>
     </div>
     <div class="card">
       <div class="row" style="margin-bottom:.7rem"><span class="list-btn" style="padding:0;border:0;cursor:default"><span class="ico">${ic("type")}</span><span class="grow">Tamanho da letra</span></span></div>
@@ -758,10 +776,62 @@ function sinais(){
     ${list.length?list.map(n=>`<div class="alert ${n.data.level==="red"?"red":"amber"}">${ic("alert")}<span>${esc(n.data.text)}</span></div>`).join(""):'<p class="muted">Nenhuma orientação cadastrada.</p>'}
     <p class="small muted">Leve sempre o resumo clínico e a lista de remédios.</p>`, null, "Fechar");
 }
+/* ---------- Notificações (push) ---------- */
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const b64u = s => { const p = "=".repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g,"+").replace(/_/g,"/")); return Uint8Array.from([...r].map(c=>c.charCodeAt(0))); };
+let PUSH = { on: false, checked: false };
+async function pushState(){
+  if(!pushSupported() || DEMO){ PUSH = {on:false, checked:true}; return PUSH; }
+  try{ const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription();
+    PUSH = { on: !!sub && Notification.permission==="granted", checked:true, endpoint: sub && sub.endpoint }; }catch(e){ PUSH = {on:false, checked:true}; }
+  return PUSH;
+}
 async function enableNotif(){
-  if(!("Notification" in window)){ toast("Este aparelho não suporta avisos pelo navegador"); return; }
-  const p = await Notification.requestPermission();
-  toast(p==="granted"?"Avisos ativados enquanto o app estiver aberto. O alarme garantido é o da Agenda Google.":"Avisos não permitidos");
+  if(DEMO){ toast("No modo demonstração os avisos ficam desligados"); return; }
+  if(isIOS && !isStandalone()){
+    openSheet(`<h2>${ic("bell")} Avisos no iPhone</h2>
+      <p>No iPhone, os avisos só funcionam com o app instalado na tela de início.</p>
+      <div class="card"><b>1.</b> Abra este link no <b>Safari</b>.<br><b>2.</b> Toque em <b>Compartilhar</b> (quadrado com seta).<br><b>3.</b> Toque em <b>Adicionar à Tela de Início</b>.<br><b>4.</b> Abra o app pelo ícone novo e toque em <b>Ativar avisos</b> de novo.</div>`, null, "Entendi");
+    return;
+  }
+  if(!pushSupported()){ toast("Este celular não aceita avisos pelo navegador. Atualize o Chrome ou o iOS."); return; }
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm!=="granted"){ toast("Avisos bloqueados. Libere nas configurações do celular."); return; }
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: b64u(CONFIG.vapidPublic) });
+    const r = await api.pushSub(S.pin, sub.toJSON(), S.me);
+    if(r.error){ toast("Não consegui ativar. Tente de novo."); return; }
+    PUSH = { on:true, checked:true, endpoint: sub.endpoint };
+    render(); toast("Avisos ativados neste celular");
+    setTimeout(testPush, 800);
+  }catch(e){ console.error(e); toast("Não consegui ativar os avisos neste celular."); }
+}
+async function testPush(){
+  try{
+    const st = await pushState(); if(!st.on){ toast("Ative os avisos primeiro"); return; }
+    const r = await fetch(CONFIG.pushFn, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ test:true, pin:S.pin, endpoint: st.endpoint }) });
+    const j = await r.json().catch(()=>({}));
+    toast(j.sent ? "Aviso de teste enviado. Deve chegar em segundos." : "Não chegou ao celular. Tente desativar e ativar de novo.");
+  }catch(e){ toast("Sem internet para testar agora."); }
+}
+async function disablePush(){
+  try{ const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription();
+    if(sub){ await api.pushUnsub(S.pin, sub.endpoint); await sub.unsubscribe(); } }catch(e){}
+  PUSH = {on:false, checked:true}; render(); toast("Avisos desligados neste celular");
+}
+function pushSheet(){
+  openSheet(`<h2>${ic("bell")} Avisos no celular</h2>
+    <p class="muted">Você recebe: <b>hora de cada remédio</b> (só se ainda não foi marcado), <b>consultas e exames</b> na véspera às 19h e 2 horas antes.</p>
+    <div class="card" id="pushInfo">Carregando…</div>
+    ${PUSH.on?`<button class="btn primary block" onclick="testPush()">${ic("bell")} Enviar aviso de teste</button>
+      <button class="btn red block" style="margin-top:.6rem" onclick="closeSheet();disablePush()">Desligar avisos neste celular</button>`
+      :`<button class="btn green block" style="background:var(--lime)" onclick="closeSheet();enableNotif()">${ic("bell")} Ativar avisos neste celular</button>`}`, null, "Fechar");
+  api.pushPeople(S.pin).then(r=>{ const el=$("#pushInfo"); if(!el||r.error) return;
+    el.innerHTML = `<b>${PUSH.on?"Ativado neste celular":"Desligado neste celular"}</b><br><span class="small muted">${r.total} celular(es) recebendo avisos${r.people&&r.people.length?": "+r.people.map(esc).join(", "):""}</span>`; }).catch(()=>{});
 }
 function changePin(){
   if(DEMO){ toast("No modo demonstração o PIN é fixo"); return; }
@@ -788,22 +858,13 @@ function closeSheet(){ const s=$("#sheet"); if(s) s.remove(); document.body.styl
 async function doSheetSave(btn){ btn.disabled=true; btn.textContent="Salvando…"; const r = await sheetSave(); if(r===false){ btn.disabled=false; btn.textContent="Salvar"; return; } closeSheet(); toast("Salvo"); }
 
 /* ---------- Avisos locais e atualização ---------- */
-let lastNotified = LS.get("cj_notified","");
-setInterval(()=>{
-  if(!S.loaded) return;
-  const hm = nowHM(), key = today()+" "+hm;
-  if("Notification" in window && Notification.permission==="granted" && lastNotified!==key){
-    const due = meds().filter(m=>m.data.time===hm && m.data.type!=="rotina" && !doseFor(today(),m.id));
-    if(due.length){ try{ new Notification("Hora do remédio · "+hm, {body: due.map(m=>m.data.name).join(", "), icon:"icon-192.png"}); }catch(e){} lastNotified=key; LS.set("cj_notified",key); }
-  }
-  if(!$("#sheet") && (S.tab==="hoje"||S.tab==="painel")) render();
-}, 30000);
+setInterval(()=>{ if(S.loaded && !$("#sheet") && (S.tab==="hoje"||S.tab==="painel")) render(); }, 30000);
 setInterval(()=>{ if(document.visibilityState==="visible" && !$("#sheet")) refresh(true); }, 20000);
 document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") refresh(true); });
 
 render();
 if(S.pin) refresh();
-if("serviceWorker" in navigator) window.addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").then(()=>pushState()).then(()=>{ if(S.pin&&S.me&&S.loaded) render(); }).catch(()=>{}));
 </script>
 </body>
 </html>
