@@ -1078,7 +1078,7 @@ function agoTxt(iso){ const m = Math.round((Date.now()-new Date(iso).getTime())/
 function inboxHtml(){
   const list = inboxEntries();
   if(!list.length) return `<p class="muted" style="text-align:center;margin:1rem 0">Nenhum aviso por enquanto.</p>`;
-  const IC = {med:"pill", event:"calendar", note:"chat"};
+  const IC = {med:"pill", event:"calendar", note:"chat", doc:"file"};
   return list.map(e=>`<button class="notice ${e.unread?"unread":""} ${e.done?"done":""}" onclick="openNotice('${e.id}','${e.kind}')">
     <span class="nico">${ic(IC[e.kind]||"bell")}</span>
     <span style="flex:1"><div class="nt">${esc(e.title)}</div><div class="nb">${esc(e.body||"")}</div>
@@ -1099,7 +1099,7 @@ async function markRead(ids){
 async function markAllRead(){ await markRead(inboxEntries().map(e=>e.id)); if($("#inboxList")) $("#inboxList").innerHTML = inboxHtml(); render(); }
 async function openNotice(id, kind){
   await markRead([id]); closeSheet();
-  if(kind==="med") go("hoje"); else if(kind==="event") go("agenda"); else { render(); notes(); }
+  if(kind==="med") go("hoje"); else if(kind==="event") go("agenda"); else if(kind==="doc") go("pront"); else { render(); notes(); }
 }
 
 /* ---------- Cartão de permissão em destaque ---------- */
