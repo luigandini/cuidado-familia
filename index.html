@@ -791,8 +791,8 @@ function renderDiario(main){
     if(d.sleep) F(`Sono ${esc(d.sleep).toLowerCase()}`);
     if(d.mood) F(`Ânimo: ${MOODS[d.mood-1].toLowerCase()}`);
     html += `<div class="entry" onclick="editDiary('${e.id}')" style="cursor:pointer">
-      <div class="row" style="justify-content:space-between"><b>${fmtShort(d.date)}, ${esc(d.time)}</b>
-        <span class="small muted">${d.exemplo?'<span class="pill amber">Exemplo</span> ':""}${esc(e.updated_by||"")}</span></div>
+      <div class="row" style="justify-content:space-between;gap:.5rem;align-items:flex-start"><b>${fmtShort(d.date)}, ${d.time?esc(d.time):'<span class="muted" style="font-weight:600">hora não anotada</span>'}</b>
+        <span class="small muted" style="text-align:right">${d.exemplo?'<span class="pill amber">Exemplo</span> ':""}${d.origin?`<span class="pill" style="background:#EEF0E8">Relato · ${esc(d.origin.label||"")}</span>`:esc(e.updated_by||"")}</span></div>
       <div class="facts">${bits.join("")}</div>
       ${d.obs?`<div style="margin-top:.55rem;font-size:.9rem">${esc(d.obs)}</div>`:""}
       ${diaryAlerts(d).map(([c,t])=>`<div class="alert ${c}">${ic("alert")}<span>${t}</span></div>`).join("")}
@@ -853,6 +853,8 @@ function editDiary(id){
     ${id?`<button class="btn red block" style="margin-top:1rem" onclick="confirmDel('${id}')">Apagar registro</button>`:""}`,
     async ()=>{
       ["temp","gluc","bpS","bpD","weight","obs","date","time"].forEach(k=>{ const el=$("#d_"+k); if(el) DF[k]=el.value.trim(); });
+      // "10 x 5" do jeito falado vira 100/50 mmHg
+      if(DF.bpS && Number(DF.bpS)<=25 && (!DF.bpD || Number(DF.bpD)<=20)){ DF.bpS = String(Number(DF.bpS)*10); if(DF.bpD) DF.bpD = String(Number(DF.bpD)*10); toast(`Pressão salva como ${DF.bpS}/${DF.bpD||"?"}`); }
       if(DF.temp) DF.temp = DF.temp.replace(",",".");
       if(DF.weight) DF.weight = DF.weight.replace(",",".");
       const data = {...DF}; delete data.exemplo;
@@ -1036,6 +1038,8 @@ function renderPainel(main){
     <div class="row small muted" style="margin-top:.8rem;gap:1rem;flex-wrap:wrap"><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;background:var(--lime);display:inline-block"></i>90% ou mais</span><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;background:var(--lime2);border:1.5px solid var(--lime);display:inline-block"></i>60 a 89%</span><span class="row" style="gap:.35rem"><i style="width:.8rem;height:.8rem;border-radius:4px;border:1.5px solid var(--red);display:inline-block"></i>abaixo de 60%</span></div></div>`;
   html += `<div class="card"><div class="sec-title">Dor nos últimos 14 dias</div>${lineChart(painPts,{min:0,max:10,color:"#15241D",unit:""})}</div>`;
   html += `<div class="card"><div class="sec-title">Temperatura (linha vermelha: febre, 37,8 °C)</div>${lineChart(tempPts,{min:35,max:40,color:"#1E5A43",unit:"°",ref:37.8})}</div>`;
+  const bpPts = diary.filter(e=>e.data.date>=since14 && e.data.bpS).map(e=>({v:Number(e.data.bpS),l:fmtShort(e.data.date)}));
+  html += `<div class="card"><div class="sec-title">Pressão máxima nos últimos 14 dias (linha vermelha: 90)</div>${bpPts.length?lineChart(bpPts,{min:Math.min(60,...bpPts.map(p=>p.v))-10,max:Math.max(150,...bpPts.map(p=>p.v))+10,color:"#15241D",unit:"",ref:90}):'<p class="small muted">Registre a pressão no diário para ver a evolução.</p>'}${diary.some(e=>e.data.origin&&e.data.bpS)?'<p class="small muted" style="margin:.3rem 0 0">Inclui valores tirados das conversas e da folha de controle (marcados como relato no Diário).</p>':""}</div>`;
   const gPts = diary.filter(e=>e.data.date>=since14 && e.data.gluc).map(e=>({v:Number(e.data.gluc),l:fmtShort(e.data.date)}));
   html += `<div class="card"><div class="sec-title">Glicose nos últimos 14 dias (linha vermelha: 70 mg/dL)</div>${gPts.length?lineChart(gPts,{min:40,max:Math.max(300,...gPts.map(p=>p.v))+20,color:"#15241D",unit:"",ref:70}):'<p class="small muted">Registre a glicose no diário para ver a evolução.</p>'}</div>`;
   if(!byKind("lab").length) html += `<div class="card"><div class="sec-title">Peso</div>${wPts.length>=1?lineChart(wPts,{min:Math.min(...wPts.map(p=>p.v))-3,max:Math.max(...wPts.map(p=>p.v))+3,color:"#1E5A43",unit:"kg"}):'<p class="small muted">Registre o peso no diário (ideal 1x por semana, mesma balança).</p>'}</div>`;
