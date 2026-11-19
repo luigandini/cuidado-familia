@@ -120,6 +120,26 @@ nav.tabs button.on{color:var(--ink);background:var(--lime)}
 .heat span{font-size:.6875rem;color:var(--muted);font-weight:700}
 .heat b{font-size:.6875rem;font-weight:700}
 svg.chart{width:100%;height:auto;display:block}
+.lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.6rem}
+.lab{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:.8rem .85rem .6rem;cursor:pointer;display:flex;flex-direction:column;gap:.15rem;min-width:0}
+.lab .ln{font-size:.82rem;font-weight:700;color:var(--muted);line-height:1.2}
+.lab .lv{font-size:1.45rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.lab .lv small{font-size:.72rem;font-weight:600;color:var(--faint);margin-left:.2rem}
+.lab .ld{font-size:.72rem;color:var(--faint)}
+.lab svg{width:100%;height:auto;display:block;margin-top:.2rem}
+.st{display:inline-flex;align-self:flex-start;font-size:.7rem;font-weight:800;padding:.18rem .5rem;border-radius:999px}
+.st.ok{background:var(--green2);color:var(--green)}.st.up{background:var(--green2);color:var(--green)}
+.st.warn{background:var(--amber2);color:var(--amber)}.st.bad{background:var(--red2);color:var(--red)}.st.na{background:rgba(21,36,29,.07);color:var(--muted)}
+.changes{list-style:none;margin:.5rem 0 0;padding:0;display:flex;flex-direction:column;gap:.45rem}
+.changes li{display:flex;gap:.55rem;align-items:flex-start;line-height:1.35}
+.changes li i{flex:0 0 .6rem;height:.6rem;border-radius:50%;margin-top:.42rem;background:var(--green)}
+.changes li.warn i{background:#D99A2B}.changes li.bad i{background:var(--red)}
+.seal{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;color:var(--forest);background:var(--blue2);border-radius:999px;padding:.18rem .55rem}
+.seal svg.i{width:.85rem;height:.85rem}
+.labtable{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:.4rem}
+.labtable td{padding:.42rem .2rem;border-top:1px solid var(--line);vertical-align:top}
+.labtable td:last-child{text-align:right;font-weight:800;white-space:nowrap}
+.dv-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.dv-lab{width:100%;border-collapse:collapse;font-size:.78rem}.dv-lab td,.dv-lab th{border:1px solid #ccd;padding:.25rem .3rem;text-align:left;white-space:nowrap}@media print{.dv-lab{font-size:9pt}}.dv-lab th{background:#f1f4f1}
 .entry{border-top:1px solid var(--line);padding:.9rem 0}
 .entry:first-child{border-top:0;padding-top:0}
 .entry .facts{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem}
@@ -841,6 +861,114 @@ function editDiary(id){
     });
 }
 
+/* ---------- EXAMES (gráficos) ---------- */
+const LABS = {
+  hb:   {name:"Sangue (hemoglobina)", short:"Hemoglobina", dec:1, what:"Mede as células vermelhas, que levam oxigênio pelo corpo. Baixa é anemia e costuma dar cansaço e falta de ar. Câncer, quimio e infecção costumam baixar."},
+  creat:{name:"Rins (creatinina)", short:"Creatinina", dec:2, what:"Mostra se os rins estão filtrando bem. Quanto mais alta, pior. Nele, por ter perdido massa muscular, o número tende a parecer melhor do que é; o que mais importa é a direção."},
+  pcr:  {name:"Inflamação (PCR)", short:"PCR", dec:1, what:"Sobe com infecção, inflamação e com a própria doença. Ela demora até 2 dias para subir e começa a cair quando o tratamento faz efeito. Cair seguidamente é bom sinal."},
+  neut: {name:"Defesas (neutrófilos)", short:"Neutrófilos", dec:0, what:"Células que combatem bactérias. A quimio costuma baixar entre 7 e 14 dias depois de cada ciclo e depois elas se recuperam. Abaixo de 1.500 é baixo; abaixo de 500, febre vira emergência."},
+  k:    {name:"Potássio", short:"Potássio", dec:1, what:"Mineral que mantém o coração e os músculos funcionando. Baixo ou alto demais pode alterar o ritmo do coração; costuma ser corrigido com reposição."},
+  peso: {name:"Peso", short:"Peso", dec:1, what:"Perder peso rápido tira força para o tratamento. A dieta pela sonda existe para segurar isso."}
+};
+const LAB_EVENTS = [["2026-10-09","Amputação"],["2026-11-09","1ª quimio"],["2026-11-15","Internação"]];
+const labInsight = () => byKind("insight").sort((a,b)=>(b.data.date||"").localeCompare(a.data.date||""))[0];
+function labSeries(m){
+  let pts = byKind("lab").filter(x=>x.data.marker===m).map(x=>({...x.data, id:x.id}));
+  if(m==="peso") byKind("diary").filter(e=>e.data.weight && !e.data.exemplo).forEach(e=>pts.push({date:e.data.date,time:e.data.time||"",marker:"peso",value:Number(e.data.weight),unit:"kg",src:"Diário da família"}));
+  return pts.filter(p=>p.value!=null && !isNaN(Number(p.value))).map(p=>({...p,value:Number(p.value)})).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||"")));
+}
+const nfmt = (v,dec) => (dec===0? Math.round(v).toLocaleString("pt-BR") : Number(v).toLocaleString("pt-BR",{minimumFractionDigits:dec,maximumFractionDigits:dec}));
+const labVal = (p,m) => (p.gt?"acima de ":"")+nfmt(p.value,(LABS[m]||{}).dec??1);
+function labStatus(m, pts){
+  const ins = labInsight(), last = pts[pts.length-1];
+  const cur = ins && ins.data.markers && ins.data.markers[m];
+  if(cur && last && (ins.data.date||"") >= last.date) return {cls:cur.cls||"na", label:cur.label, text:cur.text, curated:true};
+  if(!last) return {cls:"na", label:"sem dados"};
+  if(pts.length<2) return {cls:"na", label:"só 1 medida"};
+  const prev = pts[pts.length-2];
+  if(m==="peso"){ const first = pts[0]; const drop = (first.value-last.value)/first.value*100;
+    return drop>=5 ? {cls:"warn",label:"perdendo peso"} : {cls:"ok",label:"estável"}; }
+  const lo = last.lo, hi = last.hi, inR = v => (lo==null||v>=lo) && (hi==null||v<=hi);
+  if(inR(last.value)) return {cls:"ok",label:inR(prev.value)?"normal":"voltou ao normal"};
+  const dist = v => v<lo? lo-v : v-hi;
+  const d1 = dist(prev.value), d2 = dist(last.value);
+  if(d2 < d1*0.92) return {cls:"up",label:"melhorando"};
+  if(d2 > d1*1.08) return {cls:"warn",label:"atenção"};
+  return {cls:"warn",label:"fora do normal, estável"};
+}
+function labChart(m, pts, {big=false, from=null}={}){
+  if(from) pts = pts.filter(p=>p.date>=from);
+  if(!pts.length) return `<p class="small muted">Sem medidas ainda.</p>`;
+  const W = big?340:160, H = big?200:62, PL = big?34:4, PR = big?12:4, PT = big?26:6, PB = big?26:6;
+  const t = d => parseYmd(d).getTime();
+  const t0 = t(pts[0].date) - (big?86400000*2:0), t1 = Math.max(t(pts[pts.length-1].date), t0+86400000) + (big?86400000*2:0);
+  const lo = pts[pts.length-1].lo, hi = pts[pts.length-1].hi;
+  let vmin = Math.min(...pts.map(p=>p.value)), vmax = Math.max(...pts.map(p=>p.value));
+  if(lo!=null && (m!=="pcr")) vmin = Math.min(vmin, lo); if(hi!=null && m!=="pcr" && m!=="neut") vmax = Math.max(vmax, hi);
+  if(m==="pcr") vmin = 0;
+  const pad = (vmax-vmin)*0.12 || 1; vmin -= pad; vmax += pad; if(m==="pcr"||m==="neut") vmin = Math.max(0,vmin);
+  const X = d => PL + ( (t(d)-t0)/(t1-t0) ) * (W-PL-PR);
+  const Y = v => PT + (1-(v-vmin)/(vmax-vmin)) * (H-PT-PB);
+  const color = "#1E5A43";
+  let g = "";
+  if(lo!=null || hi!=null){ const yb = Y(Math.max(vmin, lo??vmin)), yt = Y(Math.min(vmax, hi??vmax)); g += `<rect x="${PL}" y="${yt.toFixed(1)}" width="${W-PL-PR}" height="${Math.max(0,yb-yt).toFixed(1)}" fill="#E4F2E9"/>`; }
+  if(big){ let lastX = -99, row = 0; LAB_EVENTS.forEach(([d,l])=>{ if(t(d)<t0||t(d)>t1) return; const xn = X(d), x = xn.toFixed(1);
+      row = (xn-lastX < 55) ? 1-row : 0; lastX = xn;
+      const anchor = xn > W-PR-30 ? "end" : (xn < PL+30 ? "start" : "middle");
+      g += `<line x1="${x}" x2="${x}" y1="${PT+row*11}" y2="${H-PB}" stroke="#8A968F" stroke-dasharray="3 3"/><text x="${x}" y="${PT-4+row*11}" font-size="9.5" text-anchor="${anchor}" fill="#5E6B64" font-family="Manrope,sans-serif">${l}</text>`; });
+    [vmin+pad, vmax-pad].forEach(v=>{ g += `<text x="${PL-4}" y="${(Y(v)+3).toFixed(1)}" font-size="9.5" text-anchor="end" fill="#8A968F" font-family="Manrope,sans-serif">${nfmt(v, m==="neut"?0:(LABS[m].dec>1?1:LABS[m].dec))}</text>`; });
+    const months = []; let c = parseYmd(pts[0].date); c = new Date(c.getFullYear(), c.getMonth(), 1);
+    while(c.getTime()<=t1){ if(c.getTime()>=t0){ const iso = ymd(c); months.push(`<text x="${X(iso).toFixed(1)}" y="${H-8}" font-size="9.5" text-anchor="middle" fill="#8A968F" font-family="Manrope,sans-serif">${MESES_LONG[c.getMonth()].slice(0,3)}</text>`); } c = new Date(c.getFullYear(), c.getMonth()+1, 1); }
+    g += months.join("");
+  }
+  // trecho longo sem exame (> 14 dias) fica tracejado: não sabemos o que aconteceu no meio
+  let solid = "", dash = "";
+  pts.forEach((p,i)=>{ const pt = `${X(p.date).toFixed(1)},${Y(p.value).toFixed(1)}`; if(!i){ solid += `M${pt}`; return; }
+    const q = pts[i-1], gap = (t(p.date)-t(q.date)) > 14*86400000, qp = `${X(q.date).toFixed(1)},${Y(q.value).toFixed(1)}`;
+    if(gap){ dash += ` M${qp} L${pt}`; solid += ` M${pt}`; } else solid += ` L${pt}`; });
+  const sw = big?2.25:1.8;
+  if(dash) g += `<path d="${dash}" fill="none" stroke="${color}" stroke-width="${sw*0.8}" stroke-dasharray="4 4" opacity=".55"/>`;
+  g += `<path d="${solid}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  pts.forEach((p,i)=>{ const last = i===pts.length-1; if(big||last) g += `<circle cx="${X(p.date).toFixed(1)}" cy="${Y(p.value).toFixed(1)}" r="${big?3.6:3}" fill="${last?color:"#fff"}" stroke="${color}" stroke-width="2"/>`; });
+  if(big){ const p = pts[pts.length-1]; g += `<text x="${Math.min(X(p.date),W-PR-2).toFixed(1)}" y="${(Y(p.value)-9).toFixed(1)}" font-size="12" font-weight="800" text-anchor="end" fill="${color}" font-family="Manrope,sans-serif">${labVal(p,m)}</text>`; }
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de ${esc(LABS[m].name)}">${g}</svg>`;
+}
+function labCard(m){
+  const pts = labSeries(m), last = pts[pts.length-1], st = labStatus(m, pts);
+  if(!last) return "";
+  return `<div class="lab" onclick="labSheet('${m}')"><div class="ln">${esc(LABS[m].name)}</div>
+    <div class="lv">${labVal(last,m)}<small>${esc(last.unit||"")}</small></div>
+    <span class="st ${st.cls}">${esc(st.label)}</span>
+    ${labChart(m, pts, {from:"2026-09-15"})}
+    <div class="ld">${fmtShort(last.date)}${last.time?" "+esc(last.time):""}</div></div>`;
+}
+function labsBlock(){
+  if(!byKind("lab").length) return "";
+  const ins = labInsight();
+  const lastDate = byKind("lab").map(x=>x.data.date).sort().pop();
+  let h = `<div class="row" style="justify-content:space-between;align-items:flex-end;margin:1.2rem .1rem .1rem"><span class="sec-title" style="margin:0">Exames de sangue</span><span class="small muted">último: ${fmtShort(lastDate)}</span></div>`;
+  if(ins){ h += `<div class="card" style="margin-top:.5rem"><div class="row" style="justify-content:space-between;gap:.5rem;flex-wrap:wrap"><b>O que mudou</b>${ins.data.by?`<span class="seal">${ic("check")} ${esc(ins.data.by)} ${fmtShort(ins.data.date)}</span>`:""}</div>
+    <ul class="changes">${(ins.data.headline||[]).map(x=>`<li class="${x.tone||""}"><i></i><span>${esc(x.text)}</span></li>`).join("")}</ul>
+    <p class="small muted" style="margin:.7rem 0 0">Os exames são uma parte. Como ele está (dor, sono, ânimo, alimentação) é a outra, e isso a equipe vê de perto.</p></div>`; }
+  h += `<div class="lab-grid">${Object.keys(LABS).map(labCard).join("")}</div>
+    <p class="small muted" style="margin:.5rem .2rem 0">Faixa verde clara = valor normal do laboratório. Linha tracejada = período sem exame. Toque num cartão para ver a história e o que o exame mede.</p>`;
+  return h;
+}
+function labSheet(m){
+  const L = LABS[m], pts = labSeries(m), st = labStatus(m, pts), ins = labInsight(), last = pts[pts.length-1];
+  const old = pts.filter(p=>p.date<"2026-09-15");
+  openSheet(`<h2>${esc(L.name)}</h2>
+    <div class="row" style="gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem"><span class="st ${st.cls}">${esc(st.label)}</span>${st.curated&&ins?`<span class="seal">${ic("check")} ${esc(ins.data.by||"Conselho Médico")} ${fmtShort(ins.data.date)}</span>`:`<span class="small muted">situação calculada pelo app</span>`}</div>
+    ${st.text?`<p style="margin:.2rem 0 .8rem">${esc(st.text)}</p>`:""}
+    <div class="card" style="padding:.7rem .5rem">${labChart(m, pts, {big:true, from:"2026-09-15"})}</div>
+    ${old.length?`<p class="small muted">Antes da doença: ${old.map(p=>`${labVal(p,m)} ${esc(p.unit||"")} em ${fmtFull(p.date)}`).join("; ")}.</p>`:""}
+    ${last&&last.lo!=null?`<p class="small muted">Normal pelo laboratório: ${nfmt(last.lo,L.dec)} a ${nfmt(last.hi,L.dec)} ${esc(last.unit||"")}.</p>`:""}
+    <div class="sec-title" style="margin:1rem 0 .2rem">O que esse exame mede</div><p style="margin:0">${esc(L.what)}</p>
+    <div class="sec-title" style="margin:1rem 0 .2rem">Todas as medidas</div>
+    <table class="labtable">${[...pts].reverse().map(p=>`<tr><td>${fmtFull(p.date)}${p.time?" "+esc(p.time):""}<div class="small muted">${esc(p.src||"")}${p.note==="quadro evolutivo"?" (quadro evolutivo)":""}</div></td><td>${labVal(p,m)} ${esc(p.unit||"")}</td></tr>`).join("")}</table>
+    <p class="small muted" style="margin-top:.8rem">Valores copiados dos laudos e conferidos. Ferramenta de compreensão para a família; não substitui a avaliação da equipe.</p>`, null, "Fechar");
+}
+
 /* ---------- PAINEL ---------- */
 function lineChart(points, {min, max, color, unit, ref}){
   if(points.length<1) return `<p class="small muted">Ainda sem dados suficientes.</p>`;
@@ -889,6 +1017,7 @@ function renderPainel(main){
     <div class="stat" onclick="go('diario')"><div class="v">${painPts.length?painPts[painPts.length-1].v+"/10":"—"}</div><div class="l">última dor registrada</div></div>
     <div class="stat" onclick="go('diario')"><div class="v" style="font-size:1.2rem">${lastFood?esc(lastFood.data.food):"—"}</div><div class="l">quanto comeu (último)</div></div>
   </div>`;
+  html += labsBlock();
   if(nextEv) html += `<div class="card" onclick="go('agenda')"><div class="row" style="justify-content:space-between"><span class="sec-title" style="margin:0">Próximo compromisso</span><span class="pill" style="background:var(--lime)">${relDay(nextEv.data.date)==="HOJE"?"Hoje":relDay(nextEv.data.date)==="AMANHÃ"?"Amanhã":relDay(nextEv.data.date)}</span></div>
     <div class="big" style="margin-top:.2rem">${esc(nextEv.data.title)}</div>
     <div class="meta muted small" style="margin-top:.25rem">${fmtDay(nextEv.data.date)}${nextEv.data.time?" às "+esc(nextEv.data.time):""}${nextEv.data.place?", "+esc(nextEv.data.place):""}</div></div>`;
@@ -901,7 +1030,7 @@ function renderPainel(main){
   html += `<div class="card"><div class="sec-title">Temperatura (linha vermelha: febre, 37,8 °C)</div>${lineChart(tempPts,{min:35,max:40,color:"#1E5A43",unit:"°",ref:37.8})}</div>`;
   const gPts = diary.filter(e=>e.data.date>=since14 && e.data.gluc).map(e=>({v:Number(e.data.gluc),l:fmtShort(e.data.date)}));
   html += `<div class="card"><div class="sec-title">Glicose nos últimos 14 dias (linha vermelha: 70 mg/dL)</div>${gPts.length?lineChart(gPts,{min:40,max:Math.max(300,...gPts.map(p=>p.v))+20,color:"#15241D",unit:"",ref:70}):'<p class="small muted">Registre a glicose no diário para ver a evolução.</p>'}</div>`;
-  html += `<div class="card"><div class="sec-title">Peso</div>${wPts.length>=1?lineChart(wPts,{min:Math.min(...wPts.map(p=>p.v))-3,max:Math.max(...wPts.map(p=>p.v))+3,color:"#1E5A43",unit:"kg"}):'<p class="small muted">Registre o peso no diário (ideal 1x por semana, mesma balança).</p>'}</div>`;
+  if(!byKind("lab").length) html += `<div class="card"><div class="sec-title">Peso</div>${wPts.length>=1?lineChart(wPts,{min:Math.min(...wPts.map(p=>p.v))-3,max:Math.max(...wPts.map(p=>p.v))+3,color:"#1E5A43",unit:"kg"}):'<p class="small muted">Registre o peso no diário (ideal 1x por semana, mesma balança).</p>'}</div>`;
   main.innerHTML = html;
 }
 
@@ -918,7 +1047,7 @@ function renderPront(main){
   let html = "";
   // Resumo
   html += `<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start">
-      <div><div class="sec-title" style="margin:0">Resumo clínico</div>${sm?`<div class="small muted" style="margin-top:.15rem">Atualizado em ${fmtFull(sm.data.updated||today())}</div>`:""}</div>
+      <div><div class="sec-title" style="margin:0">Resumo clínico</div>${sm?`<div class="small muted" style="margin-top:.15rem">Atualizado em ${fmtFull(sm.data.updated||today())}</div>${sm.data.review?`<span class="seal" style="margin-top:.35rem">${ic("check")} ${esc(sm.data.review.by)} ${fmtShort(sm.data.review.date)}</span>`:""}`:""}</div>
       ${sm?`<button class="btn sm" style="background:var(--lime);border-color:var(--lime)" onclick="doctorView()">${ic("expand")} Mostrar ao médico</button>`:""}</div>
     ${sm ? `<div class="sumsec"><b>${esc(sm.data.sections?.[0]?.title||"")}</b>${esc(sm.data.sections?.[0]?.text||"")}</div>
       <button class="btn sm" style="margin-top:.8rem" onclick="summarySheet()">Ver resumo completo</button>`
@@ -958,7 +1087,7 @@ function renderTimeline(){
     if(m!==lastM){ if(lastM) html += `</div>`; const dd=parseYmd(d.date); html += `<div class="monthhead">${MESES_LONG[dd.getMonth()]} de ${dd.getFullYear()}</div><div class="card" style="margin-top:.3rem">`; lastM=m; }
     const t = RTYPES[d.type]||RTYPES.outro, open = PR.open[r.id];
     html += `<div class="rec" onclick="PR.open['${r.id}']=!PR.open['${r.id}'];renderTimeline()">
-      <div class="rh"><span class="rico">${ic(t[1])}</span><span style="flex:1"><div class="rt">${esc(d.title)}</div><div class="rd">${fmtFull(d.date)} · ${t[0]}${d.pending?' · <span style="color:var(--amber)">aguardando resumo</span>':""}</div></span></div>
+      <div class="rh"><span class="rico">${ic(t[1])}</span><span style="flex:1"><div class="rt">${esc(d.title)}</div><div class="rd">${fmtFull(d.date)} · ${t[0]}${d.pending?' · <span style="color:var(--amber)">aguardando resumo</span>':""}</div>${d.review?`<span class="seal" style="margin-top:.3rem">${ic("check")} ${esc(d.review.by)} ${fmtShort(d.review.date)}</span>`:""}</span></div>
       ${d.summary?`<div class="rs ${open?"":"clamp"}">${esc(d.summary)}</div>`:""}
       ${(d.files||[]).length?`<div class="files">${d.files.map((f,j)=>`<button class="btn sm" onclick="event.stopPropagation();openFile('${esc(f.path)}')">${ic("file")} ${esc(f.name||"Documento "+(j+1))}</button>`).join("")}</div>`:""}
       ${open?`<div class="files"><button class="btn sm" onclick="event.stopPropagation();editRecord('${r.id}')">${ic("pen")} Editar</button></div>`:""}
@@ -1001,9 +1130,15 @@ function doctorView(){
     ${(d.sections||[]).map(s=>`<div class="dv-sec"><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></div>`).join("")}
     <div class="dv-sec"><h3>Remédios em uso (lista da família)</h3><p>${Object.entries(byName).map(([n,v])=>`<b>${esc(n)}</b> ${v.times.join(", ")}${v.detail?` · ${esc(v.detail)}`:""}`).join("<br>")||"—"}</p></div>
     ${vit.length?`<div class="dv-sec"><h3>Últimos sinais registrados pela família</h3><p>${vit.join("<br>")}</p></div>`:""}
+    ${byKind("lab").length?`<div class="dv-sec"><h3>Evolução dos exames de sangue</h3>${dvLabTable()}</div>`:""}
     ${recs.length?`<div class="dv-sec"><h3>Exames mais recentes</h3><p>${recs.map(r=>`<b>${fmtShort(r.data.date)}</b> ${esc(r.data.title)}`).join("<br>")}</p></div>`:""}
     <p class="small muted" style="margin-top:1.5rem">Resumo organizado pela família no Dito's Health. Atualizado em ${d.updated?fmtFull(d.updated):"—"}.</p>`;
   document.body.appendChild(el);
+}
+function dvLabTable(){
+  const ms = ["hb","neut","creat","pcr","k"]; const dates = [...new Set(byKind("lab").filter(x=>ms.includes(x.data.marker)&&x.data.date>="2026-10-01").map(x=>x.data.date))].sort().slice(-5);
+  const cell = (m,d) => { const ps = labSeries(m).filter(p=>p.date===d); const p = ps[ps.length-1]; return p? labVal(p,m) : "—"; };
+  return `<div class="dv-scroll"><table class="dv-lab"><tr><th></th>${dates.map(d=>`<th>${fmtShort(d)}</th>`).join("")}</tr>${ms.map(m=>`<tr><th>${esc(LABS[m].short)}</th>${dates.map(d=>`<td>${cell(m,d)}</td>`).join("")}</tr>`).join("")}</table></div><p class="muted" style="margin:.3rem 0 0;font-size:.78rem">Valores copiados dos laudos do laboratório e conferidos. Último exame à direita.</p>`;
 }
 function oldQuestions(){
   const all = byKind("questions").sort((a,b)=>(b.data.created||"").localeCompare(a.data.created||""));
