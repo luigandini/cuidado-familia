@@ -911,16 +911,23 @@ function labChart(m, pts, {big=false, from=null}={}){
   const Y = v => PT + (1-(v-vmin)/(vmax-vmin)) * (H-PT-PB);
   const color = "#1E5A43";
   let g = "";
-  if(lo!=null || hi!=null){ const yb = Y(Math.max(vmin, lo??vmin)), yt = Y(Math.min(vmax, hi??vmax)); g += `<rect x="${PL}" y="${yt.toFixed(1)}" width="${W-PL-PR}" height="${Math.max(0,yb-yt).toFixed(1)}" fill="#E4F2E9"/>`; }
+  // faixa normal: cada trecho usa a referência do laudo daquela medida
+  pts.forEach((p,i)=>{ const plo = p.lo??lo, phi = p.hi??hi; if(plo==null && phi==null) return;
+    const xa = i? X(p.date) : PL, xb = i<pts.length-1? X(pts[i+1].date) : W-PR;
+    const yb = Y(Math.max(vmin, plo??vmin)), yt = Y(Math.min(vmax, phi??vmax));
+    g += `<rect x="${xa.toFixed(1)}" y="${yt.toFixed(1)}" width="${Math.max(0,xb-xa).toFixed(1)}" height="${Math.max(0,yb-yt).toFixed(1)}" fill="#E4F2E9"/>`; });
   if(big){ let lastX = -99, row = 0; LAB_EVENTS.forEach(([d,l])=>{ if(t(d)<t0||t(d)>t1) return; const xn = X(d), x = xn.toFixed(1);
       row = (xn-lastX < 55) ? 1-row : 0; lastX = xn;
       const anchor = xn > W-PR-30 ? "end" : (xn < PL+30 ? "start" : "middle");
-      g += `<line x1="${x}" x2="${x}" y1="${PT+row*11}" y2="${H-PB}" stroke="#8A968F" stroke-dasharray="3 3"/><text x="${x}" y="${PT-4+row*11}" font-size="9.5" text-anchor="${anchor}" fill="#5E6B64" font-family="Manrope,sans-serif">${l}</text>`; });
+      g += `<line x1="${x}" x2="${x}" y1="${PT+row*11}" y2="${H-PB}" stroke="#8A968F" stroke-dasharray="3 3"/><text x="${x}" y="${PT-4+row*11}" paint-order="stroke" stroke="#fff" stroke-width="3" font-size="9.5" text-anchor="${anchor}" fill="#5E6B64" font-family="Manrope,sans-serif">${l}</text>`; });
     [vmin+pad, vmax-pad].forEach(v=>{ g += `<text x="${PL-4}" y="${(Y(v)+3).toFixed(1)}" font-size="9.5" text-anchor="end" fill="#8A968F" font-family="Manrope,sans-serif">${nfmt(v, m==="neut"?0:(LABS[m].dec>1?1:LABS[m].dec))}</text>`; });
     const months = []; let c = parseYmd(pts[0].date); c = new Date(c.getFullYear(), c.getMonth(), 1);
     while(c.getTime()<=t1){ if(c.getTime()>=t0){ const iso = ymd(c); months.push(`<text x="${X(iso).toFixed(1)}" y="${H-8}" font-size="9.5" text-anchor="middle" fill="#8A968F" font-family="Manrope,sans-serif">${MESES_LONG[c.getMonth()].slice(0,3)}</text>`); } c = new Date(c.getFullYear(), c.getMonth()+1, 1); }
     g += months.join("");
   }
+  if(big){ const dec = m==="neut"?0:(LABS[m].dec>1?2:LABS[m].dec);
+    [[hi,"máx. normal"],[(m==="pcr"||!lo)?null:lo,"mín. normal"]].forEach(([v,l])=>{ if(v==null||v<vmin||v>vmax) return; const y = Y(v).toFixed(1);
+      g += `<line x1="${PL}" x2="${W-PR}" y1="${y}" y2="${y}" stroke="#3E8A5F" stroke-width="1" stroke-dasharray="5 3"/><text x="${W-PR-2}" y="${(Y(v) - PT < 30 ? Y(v)+11 : Y(v)-3).toFixed(1)}" text-anchor="end" paint-order="stroke" stroke="#fff" stroke-width="3" font-size="9.5" fill="#2F6E4C" font-weight="700" font-family="Manrope,sans-serif">${l} ${nfmt(v,dec)}</text>`; }); }
   // trecho longo sem exame (> 14 dias) fica tracejado: não sabemos o que aconteceu no meio
   let solid = "", dash = "";
   pts.forEach((p,i)=>{ const pt = `${X(p.date).toFixed(1)},${Y(p.value).toFixed(1)}`; if(!i){ solid += `M${pt}`; return; }
@@ -930,7 +937,7 @@ function labChart(m, pts, {big=false, from=null}={}){
   if(dash) g += `<path d="${dash}" fill="none" stroke="${color}" stroke-width="${sw*0.8}" stroke-dasharray="4 4" opacity=".55"/>`;
   g += `<path d="${solid}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`;
   pts.forEach((p,i)=>{ const last = i===pts.length-1; if(big||last) g += `<circle cx="${X(p.date).toFixed(1)}" cy="${Y(p.value).toFixed(1)}" r="${big?3.6:3}" fill="${last?color:"#fff"}" stroke="${color}" stroke-width="2"/>`; });
-  if(big){ const p = pts[pts.length-1]; g += `<text x="${Math.min(X(p.date),W-PR-2).toFixed(1)}" y="${(Y(p.value)-9).toFixed(1)}" font-size="12" font-weight="800" text-anchor="end" fill="${color}" font-family="Manrope,sans-serif">${labVal(p,m)}</text>`; }
+  if(big){ const p = pts[pts.length-1]; g += `<text x="${(X(p.date)-8).toFixed(1)}" y="${(Y(p.value)-6).toFixed(1)}" font-size="12" font-weight="800" text-anchor="end" paint-order="stroke" stroke="#fff" stroke-width="4" fill="${color}" font-family="Manrope,sans-serif">${labVal(p,m)}</text>`; }
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de ${esc(LABS[m].name)}">${g}</svg>`;
 }
 function labCard(m){
@@ -962,10 +969,11 @@ function labSheet(m){
     ${st.text?`<p style="margin:.2rem 0 .8rem">${esc(st.text)}</p>`:""}
     <div class="card" style="padding:.7rem .5rem">${labChart(m, pts, {big:true, from:"2026-09-15"})}</div>
     ${old.length?`<p class="small muted">Antes da doença: ${old.map(p=>`${labVal(p,m)} ${esc(p.unit||"")} em ${fmtFull(p.date)}`).join("; ")}.</p>`:""}
-    ${last&&last.lo!=null?`<p class="small muted">Normal pelo laboratório: ${nfmt(last.lo,L.dec)} a ${nfmt(last.hi,L.dec)} ${esc(last.unit||"")}.</p>`:""}
+    ${last&&(last.ref||last.lo!=null)?`<p class="small muted" style="margin-bottom:.2rem">Referência no laudo mais recente: <b>${esc(last.ref||`${nfmt(last.lo,L.dec)} a ${nfmt(last.hi,L.dec)} ${last.unit||""}`)}</b>. A linha tracejada verde marca esse limite.</p>`:""}
+    ${pts.some(p=>p.refDiff)?`<p class="small muted" style="margin-top:0">* O laboratório avisa que a referência desses valores antigos era diferente da atual, mas não informa o número antigo no quadro.</p>`:""}
     <div class="sec-title" style="margin:1rem 0 .2rem">O que esse exame mede</div><p style="margin:0">${esc(L.what)}</p>
     <div class="sec-title" style="margin:1rem 0 .2rem">Todas as medidas</div>
-    <table class="labtable">${[...pts].reverse().map(p=>`<tr><td>${fmtFull(p.date)}${p.time?" "+esc(p.time):""}<div class="small muted">${esc(p.src||"")}${p.note==="quadro evolutivo"?" (quadro evolutivo)":""}</div></td><td>${labVal(p,m)} ${esc(p.unit||"")}</td></tr>`).join("")}</table>
+    <table class="labtable">${[...pts].reverse().map(p=>`<tr><td>${fmtFull(p.date)}${p.time?" "+esc(p.time):""}<div class="small muted">${p.refDiff?"ref. diferente da atual *":(p.ref?"ref. "+esc(p.ref):"")}</div><div class="small muted">${esc(p.src||"")}${p.note==="quadro evolutivo"?" (quadro evolutivo)":""}</div></td><td>${labVal(p,m)} ${esc(p.unit||"")}</td></tr>`).join("")}</table>
     <p class="small muted" style="margin-top:.8rem">Valores copiados dos laudos e conferidos. Ferramenta de compreensão para a família; não substitui a avaliação da equipe.</p>`, null, "Fechar");
 }
 
